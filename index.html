@@ -187,39 +187,59 @@
             });
         });
 
-        // 4. المصادقة والاتصال بـ Supabase
-        async function initApp() {
-            try {
-                // محاولة المصادقة عبر Edge Function (يعمل فقط داخل تليجرام)
-                if (tg.initData) {
-                    const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ initData: tg.initData })
-                    });
-                    
-                    if (authResponse.ok) {
-                        const authData = await authResponse.json();
-                        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                            global: { headers: { Authorization: `Bearer ${authData.token}` } }
-                        });
-                    } else {
-                        throw new Error('فشل المصادقة');
-                    }
-                } else {
-                    // للتجربة خارج تليجرام (متصفح عادي)
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                }
+       // 4. المصادقة والاتصال بـ Supabase
+async function initApp() {
+    const list = document.getElementById('bookingsList');
+    list.innerHTML = '<div class="text-center p-8 text-blue-500 font-bold animate-pulse">جاري مصادقة هويتك مع الخادم...</div>';
 
-                // بدء جلب البيانات
-                fetchBookings(currentStatus);
-                subscribeToRealtime();
-
-            } catch (error) {
-                console.error('Auth Error:', error);
-                document.getElementById('bookingsList').innerHTML = `<div class="text-center p-4 text-error">خطأ في المصادقة. افتح من داخل تليجرام.</div>`;
-            }
+    try {
+        if (!tg.initData) {
+            throw new Error('يرجى فتح التطبيق من داخل تليجرام وليس من المتصفح العادي.');
         }
+
+        // إرسال بيانات تليجرام للتحقق
+        const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData: tg.initData })
+        });
+        
+        if (!authResponse.ok) {
+            const errData = await authResponse.json();
+            throw new Error(errData.error || `خطأ في الخادم: ${authResponse.status}`);
+        }
+        
+        const authData = await authResponse.json();
+
+        // إنشاء عميل Supabase
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${authData.token}` } }
+        });
+
+        // بدء جلب البيانات
+        fetchBookings(currentStatus);
+        subscribeToRealtime();
+
+    } catch (error) {
+        console.error('Auth Error:', error);
+        
+        // استخراج رقم التليجرام الخاص بك لتسجيله
+        const userId = tg.initDataUnsafe?.user?.id || 'غير معروف';
+        
+        list.innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4 m-4 text-center">
+                <span class="material-symbols-outlined text-red-500 text-3xl mb-2">error</span>
+                <h3 class="text-red-700 font-bold mb-1">فشل الاتصال</h3>
+                <p class="text-sm text-red-600 mb-3">${error.message}</p>
+                <div class="bg-white p-2 rounded text-xs text-gray-600 border border-gray-200 font-mono" dir="ltr">
+                    Your Telegram ID:<br>
+                    <strong class="text-lg text-black">${userId}</strong>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">انسخ هذا الرقم وتأكد من إضافته في جدول staff_roles</p>
+            </div>
+        `;
+    }
+}
 
         // 5. جلب ورسم الحجوزات
         async function fetchBookings(status) {
