@@ -1,360 +1,108 @@
-<!DOCTYPE html>
-
-<html dir="rtl" lang="ar"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>شفاء - لوحة التحكم</title>
-<!-- Telegram Web App -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Google Fonts: Cairo & Tajawal -->
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&amp;family=Tajawal:wght@500&amp;display=swap" rel="stylesheet"/>
-<!-- Material Symbols -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<!-- Tailwind Config -->
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "surface-container-highest": "#e0e3e5",
-                        "surface-container": "#eceef0",
-                        "on-tertiary-fixed-variant": "#7d2d00",
-                        "primary-fixed": "#dbe1ff",
-                        "surface-variant": "#e0e3e5",
-                        "secondary-fixed-dim": "#4edea3",
-                        "on-tertiary-fixed": "#360f00",
-                        "surface-tint": "#0053db",
-                        "on-primary-container": "#eeefff",
-                        "primary-container": "#2563eb",
-                        "outline": "#737686",
-                        "inverse-on-surface": "#eff1f3",
-                        "on-primary-fixed": "#00174b",
-                        "tertiary-fixed": "#ffdbcd",
-                        "primary": "#004ac6",
-                        "background": "#f7f9fb",
-                        "on-primary": "#ffffff",
-                        "surface-container-lowest": "#ffffff",
-                        "on-primary-fixed-variant": "#003ea8",
-                        "tertiary-fixed-dim": "#ffb596",
-                        "surface": "#f7f9fb",
-                        "primary-fixed-dim": "#b4c5ff",
-                        "on-error-container": "#93000a",
-                        "on-background": "#191c1e",
-                        "inverse-surface": "#2d3133",
-                        "on-surface-variant": "#434655",
-                        "secondary-fixed": "#6ffbbe",
-                        "inverse-primary": "#b4c5ff",
-                        "on-tertiary-container": "#ffede6",
-                        "on-secondary-fixed": "#002113",
-                        "outline-variant": "#c3c6d7",
-                        "error": "#ba1a1a",
-                        "on-secondary": "#ffffff",
-                        "on-surface": "#191c1e",
-                        "on-tertiary": "#ffffff",
-                        "secondary-container": "#6cf8bb",
-                        "tertiary-container": "#bc4800",
-                        "on-secondary-container": "#00714d",
-                        "surface-bright": "#f7f9fb",
-                        "surface-container-high": "#e6e8ea",
-                        "surface-container-low": "#f2f4f6",
-                        "tertiary": "#943700",
-                        "on-error": "#ffffff",
-                        "on-secondary-fixed-variant": "#005236",
-                        "secondary": "#006c49",
-                        "surface-dim": "#d8dadc",
-                        "error-container": "#ffdad6"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "1rem",
-                        "lg": "2rem",
-                        "xl": "3rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "stack-md": "1rem",
-                        "section-padding": "1.5rem",
-                        "gutter": "1rem",
-                        "container-margin": "1.25rem",
-                        "stack-lg": "2rem",
-                        "stack-sm": "0.5rem"
-                    },
-                    "fontFamily": {
-                        "display-lg": ["Cairo"],
-                        "display-lg-mobile": ["Cairo"],
-                        "body-lg": ["Cairo"],
-                        "body-sm": ["Cairo"],
-                        "label-md": ["Tajawal"],
-                        "headline-md": ["Cairo"],
-                        "label-sm": ["Tajawal"]
-                    },
-                    "fontSize": {
-                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
-                        "display-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
-                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
-                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
-                        "label-md": ["14px", { "lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "500" }],
-                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
-                        "label-sm": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }]
-                    }
-                }
-            }
-        }
-    </script>
-<style>
-        body { -webkit-tap-highlight-color: transparent; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Modal Transitions */
-        .modal-enter { opacity: 0; pointer-events: none; }
-        .modal-enter-active { opacity: 1; pointer-events: auto; transition: opacity 0.3s ease-out; }
-        .sheet-enter { transform: translateY(100%); }
-        .sheet-enter-active { transform: translateY(0); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    </style>
-</head>
-<body class="bg-surface text-on-surface font-body-lg min-h-screen relative overflow-x-hidden">
-<!-- TopAppBar -->
-<header class="fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-md shadow-sm flex justify-between items-center px-container-margin py-stack-sm rtl">
-<div class="flex items-center gap-2 w-1/4">
-<span class="font-display-lg-mobile text-display-lg-mobile text-primary font-bold">شفاء</span>
-</div>
-<div class="flex-1 max-w-sm mx-auto">
-<div class="relative bg-surface-container-low rounded-full px-4 py-2 flex items-center shadow-inner">
-<span class="material-symbols-outlined text-on-surface-variant mr-2 text-[20px]">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-body-sm w-full outline-none text-on-surface placeholder:text-on-surface-variant/70" placeholder="بحث عن مريض أو موعد..." type="text"/>
-</div>
-</div>
-<div class="w-1/4 flex justify-end">
-<div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border-2 border-surface-container-highest shadow-sm">
-<img class="w-full h-full object-cover" data-alt="A close-up portrait of a professional nurse in a soft, modern medical setting. The lighting is bright and serene, emphasizing a clean, light-mode aesthetic. The colors are muted, relying on soft blues and crisp whites to convey trust and calmness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk34Sdko3TDt3FED3z_aROWdpn96590dE75HN0WKDgLraiiLYxkK0cOJE86W-zM23wO-RWQoqSt2t1DJFizgPS-2ZyHQu7B95PhKgTU3_gFtmIohvX6-1-NrSEofu6k1BCKqCsW4B_SaClzqtVVM_SwJMN-6wOtXQZYIUz0Yoabnk5e0TyDX9ggn2sLTxbmgjqhtkPG_GoxYVajPdGLctGcro0wlUyryoh2iv_brYEXHe3l4sT1Vw8"/>
-</div>
-</div>
-</header>
-<!-- Main Content Canvas -->
-<main class="pt-[80px] pb-[100px] px-container-margin md:max-w-[600px] md:mx-auto">
-<!-- Tabs -->
-<div class="flex overflow-x-auto hide-scrollbar gap-stack-sm py-stack-sm mb-stack-md" id="statusTabs">
-<button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200" data-target="new">جديد</button>
-<button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container whitespace-nowrap transition-all duration-200" data-target="progress">جاري</button>
-<button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container whitespace-nowrap transition-all duration-200" data-target="completed">مكتمل</button>
-<button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container whitespace-nowrap transition-all duration-200" data-target="cancelled">ملغي</button>
-</div>
-<!-- Booking Cards List -->
-<div class="flex flex-col gap-stack-md">
-<!-- Card 1: Pending -->
-<div class="bg-surface-container-lowest rounded-2xl p-section-padding shadow-[0_4px_20px_rgba(15,23,42,0.05)] flex flex-col gap-stack-sm relative overflow-hidden group">
-<div class="absolute top-0 right-0 w-1 h-full bg-tertiary-container rounded-r-2xl"></div>
-<div class="flex justify-between items-start">
-<div class="pr-2">
-<h3 class="font-headline-md-mobile text-headline-md-mobile text-on-surface mb-1">فاطمة عبد الرحمن</h3>
-<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
-<span class="material-symbols-outlined text-[16px] text-outline">call</span>
-                            055 987 6543
-                        </p>
-</div>
-<span class="bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1">
-<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
-                        قيد الانتظار
-                    </span>
-</div>
-<div class="flex justify-between items-center mt-3 pt-3 border-t border-surface-container-highest">
-<div class="flex items-center gap-1 text-outline">
-<span class="material-symbols-outlined text-[14px]">schedule</span>
-<p class="font-label-sm text-label-sm">منذ 10 دقائق</p>
-</div>
-<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors">
-                        التفاصيل
-                        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-</button>
-</div>
-</div>
-<!-- Card 2: In Progress -->
-<div class="bg-surface-container-lowest rounded-2xl p-section-padding shadow-[0_4px_20px_rgba(15,23,42,0.05)] flex flex-col gap-stack-sm relative overflow-hidden">
-<div class="absolute top-0 right-0 w-1 h-full bg-primary rounded-r-2xl"></div>
-<div class="flex justify-between items-start">
-<div class="pr-2">
-<h3 class="font-headline-md-mobile text-headline-md-mobile text-on-surface mb-1">محمد العتيبي</h3>
-<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
-<span class="material-symbols-outlined text-[16px] text-outline">call</span>
-                            050 123 4567
-                        </p>
-</div>
-<span class="bg-primary-fixed text-on-primary-fixed px-3 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">vital_signs</span>
-                        جاري التنفيذ
-                    </span>
-</div>
-<div class="flex justify-between items-center mt-3 pt-3 border-t border-surface-container-highest">
-<div class="flex items-center gap-1 text-outline">
-<span class="material-symbols-outlined text-[14px]">schedule</span>
-<p class="font-label-sm text-label-sm">منذ ساعتين</p>
-</div>
-<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors">
-                        التفاصيل
-                        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-</button>
-</div>
-</div>
-</div>
-</main>
-<!-- Floating Action Button -->
-<button class="fixed bottom-[90px] left-container-margin w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-30 md:left-auto md:right-[calc(50%+220px)]" onclick="openModal()">
-<span class="material-symbols-outlined text-[28px]">add</span>
-</button>
-<!-- Bottom Sheet Modal (Emergency Booking) -->
-<div class="fixed inset-0 z-50 modal-enter hidden" id="emergencyModal">
-<!-- Backdrop -->
-<div class="absolute inset-0 bg-on-background/30 backdrop-blur-sm" onclick="closeModal()"></div>
-<!-- Sheet -->
-<div class="absolute bottom-0 w-full bg-surface-container-lowest rounded-t-xl p-section-padding pb-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sheet-enter md:max-w-[600px] md:left-1/2 md:-translate-x-1/2" id="modalSheet">
-<div class="w-12 h-1.5 bg-surface-variant rounded-full mx-auto mb-stack-md cursor-grab active:cursor-grabbing"></div>
-<div class="flex items-center gap-2 mb-stack-lg">
-<div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center">
-<span class="material-symbols-outlined text-[20px]">emergency</span>
-</div>
-<h2 class="font-headline-md-mobile text-headline-md-mobile text-on-surface">حجز جديد سريع (طوارئ)</h2>
-</div>
-<form class="flex flex-col gap-stack-md" onsubmit="event.preventDefault(); closeModal();">
-<div class="relative">
-<span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">person</span>
-<input class="w-full bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-12 py-3.5 font-body-sm text-body-sm outline-none transition-all placeholder:text-outline" placeholder="اسم المريض بالكامل" required="" type="text"/>
-</div>
-<div class="relative">
-<span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">phone_iphone</span>
-<input class="w-full bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-12 py-3.5 font-body-sm text-body-sm outline-none transition-all placeholder:text-outline text-left" dir="ltr" placeholder="رقم الهاتف للتواصل" required="" type="tel"/>
-</div>
-<button class="w-full bg-primary text-on-primary rounded-full py-4 mt-2 font-label-md text-label-md font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2" type="submit">
-                    تأكيد طلب الطوارئ
-                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-</button>
-</form>
-</div>
-</div>
-<!-- BottomNavBar (Hidden on md screens as per rules) -->
-<nav class="fixed bottom-0 w-full rounded-t-lg z-40 bg-surface-container-lowest shadow-[0_-4px_20px_rgba(15,23,42,0.05)] flex justify-around items-center h-16 px-2 rtl md:hidden">
-<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-on-secondary-fixed-variant text-on-secondary-container dark:text-secondary-fixed rounded-2xl px-4 py-1 active:scale-90 transition-transform duration-150">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
-<span class="font-label-sm text-label-sm mt-0.5">الرئيسية</span>
-</button>
-<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-150">
-<span class="material-symbols-outlined">event_note</span>
-<span class="font-label-sm text-label-sm mt-0.5">الحجوزات</span>
-</button>
-<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-150">
-<span class="material-symbols-outlined">notifications</span>
-<span class="font-label-sm text-label-sm mt-0.5">الإشعارات</span>
-</button>
-<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-150">
-<span class="material-symbols-outlined">person</span>
-<span class="font-label-sm text-label-sm mt-0.5">الحساب</span>
-</button>
-</nav>
-<script>
-        // Initialize Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
-
-        // Modal Logic
-        const modal = document.getElementById('emergencyModal');
-        const sheet = document.getElementById('modalSheet');
-
-        function openModal() {
-            modal.classList.remove('hidden');
-            // Small delay to allow display block to apply before animating
-            setTimeout(() => {
-                modal.classList.remove('modal-enter');
-                modal.classList.add('modal-enter-active');
-                sheet.classList.remove('sheet-enter');
-                sheet.classList.add('sheet-enter-active');
-            }, 10);
-            
-            // Haptic feedback
-            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-        }
-
-        function closeModal() {
-            modal.classList.remove('modal-enter-active');
-            modal.classList.add('modal-enter');
-            sheet.classList.remove('sheet-enter-active');
-            sheet.classList.add('sheet-enter');
-            
-            // Wait for transition to finish before hiding
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        // Tab Switching Logic
-        const tabs = document.querySelectorAll('.tab-btn');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Reset all tabs
-                tabs.forEach(t => {
-                    t.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container whitespace-nowrap transition-all duration-200';
-                });
-                
-                // Set active tab
-                tab.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200';
-                
-                // Haptic feedback
-                if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            });
-        });
-    </script>
+<!-- استدعاء مكتبة Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
     // 1. تهيئة تليجرام
     const tg = window.Telegram.WebApp;
     tg.expand();
     tg.ready();
 
-    // 2. إعدادات Supabase (استبدل بالروابط والمفاتيح الخاصة بك)
-    const SUPABASE_URL = 'https://zvxzdihonmlglrufrjjl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHpkaWhvbm1sZ2xydWZyampsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMjA3MjEsImV4cCI6MjA5ODU5NjcyMX0.cZi4F0K28AiT2aXdr4MUCLbub-zUPUXP1IlPntcxEv8';
-    let supabaseClient;
+    // 2. إعدادات Supabase
+    const SUPABASE_URL = 'ضع_رابط_المشروع_هنا';
+    const SUPABASE_ANON_KEY = 'ضع_مفتاح_anon_هنا';
+    
+    // مبدئياً سنستخدم العميل المباشر للتجربة (لاحقاً سنربطه بدالة telegram-auth)
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 3. المصادقة عبر Edge Function
-    async function initApp() {
-        try {
-            // إرسال بيانات تليجرام للتحقق
-            const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ initData: tg.initData }) // بيانات تليجرام المشفرة
-            });
+    // 3. إدارة النوافذ المنبثقة (Modal)
+    const modal = document.getElementById('emergencyModal');
+    const sheet = document.getElementById('modalSheet');
 
-            if (!authResponse.ok) throw new Error('فشل المصادقة مع الخادم');
-            
-            const authData = await authResponse.json();
-
-            // إنشاء عميل Supabase باستخدام الـ JWT الآمن العائد من الدالة
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                global: {
-                    headers: { Authorization: `Bearer ${authData.token}` }
-                }
-            });
-
-            // جلب البيانات الأولية وفتح قناة التحديث اللحظي
-            fetchBookings('pending');
-            subscribeToRealtime();
-
-        } catch (error) {
-            console.error('Auth Error:', error);
-            tg.showAlert("غير مصرح لك بالدخول، يرجى التأكد من صلاحيات حسابك.");
-        }
+    function openModal() {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('modal-enter');
+            modal.classList.add('modal-enter-active');
+            sheet.classList.remove('sheet-enter');
+            sheet.classList.add('sheet-enter-active');
+        }, 10);
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
 
-    // 4. جلب الحجوزات بناءً على الحالة (التبويب)
-    async function fetchBookings(status) {
-        if (!supabaseClient) return;
+    function closeModal() {
+        modal.classList.remove('modal-enter-active');
+        modal.classList.add('modal-enter');
+        sheet.classList.remove('sheet-enter-active');
+        sheet.classList.add('sheet-enter');
+        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    }
+
+    // 4. إرسال الطلب اليدوي الآمن
+    document.getElementById('emergencyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
         
+        const name = document.getElementById('patientName').value.trim();
+        const phone = document.getElementById('patientPhone').value.trim();
+
+        if (!name || !phone) {
+            tg.showAlert("يرجى إدخال الاسم ورقم الهاتف.");
+            return;
+        }
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = 'جاري التسجيل...';
+        submitBtn.disabled = true;
+
+        try {
+            const { error } = await supabaseClient.rpc('create_emergency_booking', {
+                p_name: name,
+                p_phone: phone,
+                p_source: 'telegram_miniapp'
+            });
+
+            if (error) throw error;
+
+            tg.HapticFeedback.notificationOccurred('success');
+            closeModal();
+            document.getElementById('emergencyForm').reset();
+            
+            // تحديث القائمة بعد الإضافة
+            const activeTab = document.querySelector('.tab-btn.bg-primary-container').dataset.target;
+            fetchBookings(activeTab);
+
+        } catch (err) {
+            tg.showAlert("حدث خطأ أثناء التسجيل.");
+            console.error(err);
+        } finally {
+            submitBtn.innerHTML = 'تأكيد طلب الطوارئ';
+            submitBtn.disabled = false;
+        }
+    });
+
+    // 5. التبويبات وجلب الحجوزات
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // إعادة ضبط شكل التبويبات
+            tabs.forEach(t => {
+                t.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container whitespace-nowrap transition-all duration-200';
+            });
+            // تفعيل التبويب الحالي
+            tab.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200';
+            
+            if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+
+            // خريطة تحويل التبويبات إلى حالات قاعدة البيانات
+            const statusMap = { 'new': 'pending', 'progress': 'in_progress', 'completed': 'completed', 'cancelled': 'cancelled' };
+            fetchBookings(statusMap[tab.dataset.target]);
+        });
+    });
+
+    // 6. دالة جلب الحجوزات ورسمها
+    async function fetchBookings(status) {
+        const list = document.getElementById('bookingsList');
+        list.innerHTML = '<div class="text-center p-4">جاري التحميل...</div>';
+
         const { data, error } = await supabaseClient
             .from('bookings')
             .select('id, patient_name, patient_phone, status, created_at')
@@ -362,53 +110,32 @@
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Fetch Error:', error);
+            list.innerHTML = '<div class="text-center text-red-500">حدث خطأ في تحميل البيانات</div>';
             return;
         }
 
-        renderBookings(data);
-    }
-
-    // دالة مساعدة لرسم البطاقات (يتم ربطها بـ DOM الواجهة)
-    function renderBookings(bookings) {
-        // سيتم هنا مسح الحجوزات القديمة وإضافة البطاقات الجديدة
-        console.log("تم جلب الحجوزات:", bookings);
-    }
-
-    // 5. إرسال الطلب اليدوي الآمن (Atomic RPC)
-    async function submitEmergencyBooking(name, phone) {
-        tg.HapticFeedback.impactOccurred('medium');
-        
-        const { data, error } = await supabaseClient
-            .rpc('create_emergency_booking', {
-                p_name: name,
-                p_phone: phone,
-                p_source: 'telegram_miniapp' // لمنع إشعارات تليجرام المزعجة للطلبات اليدوية
-            });
-
-        if (error) {
-            tg.showAlert("حدث خطأ أثناء تسجيل الطلب.");
-            console.error(error);
-        } else {
-            tg.HapticFeedback.notificationOccurred('success');
-            closeModal(); // إغلاق النافذة
-            fetchBookings(document.querySelector('.tab-btn.bg-primary-container').dataset.target); // تحديث القائمة
+        if (data.length === 0) {
+            list.innerHTML = '<div class="text-center p-4 text-gray-500">لا توجد حجوزات في هذه الحالة</div>';
+            return;
         }
+
+        list.innerHTML = data.map(booking => `
+            <div class="bg-surface-container-lowest rounded-2xl p-section-padding shadow-[0_4px_20px_rgba(15,23,42,0.05)] flex flex-col gap-stack-sm relative overflow-hidden group">
+                <div class="flex justify-between items-start">
+                    <div class="pr-2">
+                        <h3 class="font-headline-md-mobile text-headline-md-mobile text-on-surface mb-1">${booking.patient_name}</h3>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">📞 ${booking.patient_phone}</p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-3 pt-3 border-t border-surface-container-highest">
+                    <button onclick="tg.showAlert('نافذة التفاصيل قيد التطوير')" class="text-primary font-label-md text-label-md flex items-center gap-1 hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors">
+                        التفاصيل <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </button>
+                </div>
+            </div>
+        `).join('');
     }
 
-    // 6. التحديث اللحظي (Real-time Sync)
-    function subscribeToRealtime() {
-        supabaseClient
-            .channel('public:bookings')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, payload => {
-                // عند حدوث أي تغيير، نقوم بتحديث القائمة المعروضة حالياً
-                const currentTab = document.querySelector('.tab-btn.bg-primary-container').dataset.target;
-                fetchBookings(currentTab);
-            })
-            .subscribe();
-    }
-
-    // بدء تشغيل التطبيق
-    initApp();
-</script>    
-</body></html>
+    // التشغيل الأولي
+    fetchBookings('pending');
+</script>
