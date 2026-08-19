@@ -1,141 +1,344 @@
-<!-- استدعاء مكتبة Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>شفاء - لوحة التحكم</title>
+    <!-- Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Fonts: Cairo & Tajawal -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@500&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script>
-    // 1. تهيئة تليجرام
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.ready();
-
-    // 2. إعدادات Supabase
-    const SUPABASE_URL = 'https://zvxzdihonmlglrufrjjl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHpkaWhvbm1sZ2xydWZyampsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMjA3MjEsImV4cCI6MjA5ODU5NjcyMX0.cZi4F0K28AiT2aXdr4MUCLbub-zUPUXP1IlPntcxEv8';
+    <!-- Tailwind Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-container": "#eceef0",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-variant": "#e0e3e5",
+                        "surface-tint": "#0053db",
+                        "primary-container": "#2563eb",
+                        "on-primary-container": "#eeefff",
+                        "outline": "#737686",
+                        "primary": "#004ac6",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#f7f9fb",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#434655",
+                        "outline-variant": "#c3c6d7",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#bc4800",
+                        "tertiary-fixed": "#ffdbcd",
+                        "on-tertiary-fixed": "#360f00",
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                    spacing: { "stack-md": "1rem", "section-padding": "1.5rem", "container-margin": "1.25rem", "stack-sm": "0.5rem" },
+                    fontFamily: {
+                        "display-lg-mobile": ["Cairo"], "body-sm": ["Cairo"], "label-md": ["Tajawal"],
+                        "headline-md-mobile": ["Cairo"], "label-sm": ["Tajawal"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Modal Transitions */
+        .modal-enter { opacity: 0; pointer-events: none; }
+        .modal-enter-active { opacity: 1; pointer-events: auto; transition: opacity 0.3s ease-out; }
+        .sheet-enter { transform: translateY(100%); }
+        .sheet-enter-active { transform: translateY(0); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-sm min-h-screen relative overflow-x-hidden">
     
-    // مبدئياً سنستخدم العميل المباشر للتجربة (لاحقاً سنربطه بدالة telegram-auth)
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <!-- TopAppBar -->
+    <header class="fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-md shadow-sm flex justify-between items-center px-container-margin py-stack-sm rtl">
+        <div class="flex items-center gap-2 w-1/4">
+            <span class="font-display-lg-mobile text-display-lg-mobile text-primary font-bold">شفاء</span>
+        </div>
+        <div class="flex-1 max-w-sm mx-auto">
+            <div class="relative bg-surface-container-low rounded-full px-4 py-2 flex items-center shadow-inner">
+                <span class="material-symbols-outlined text-on-surface-variant mr-2 text-[20px]">search</span>
+                <input class="bg-transparent border-none focus:ring-0 text-body-sm w-full outline-none text-on-surface placeholder:text-on-surface-variant/70" placeholder="بحث عن مريض..." type="text"/>
+            </div>
+        </div>
+    </header>
 
-    // 3. إدارة النوافذ المنبثقة (Modal)
-    const modal = document.getElementById('emergencyModal');
-    const sheet = document.getElementById('modalSheet');
+    <!-- Main Content Canvas -->
+    <main class="pt-[80px] pb-[100px] px-container-margin md:max-w-[600px] md:mx-auto">
+        <!-- Tabs -->
+        <div class="flex overflow-x-auto hide-scrollbar gap-stack-sm py-stack-sm mb-stack-md" id="statusTabs">
+            <button class="tab-btn active px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200" data-status="pending">جديد</button>
+            <button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200" data-status="in_progress">جاري</button>
+            <button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200" data-status="completed">مكتمل</button>
+            <button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200" data-status="cancelled">ملغي</button>
+        </div>
 
-    function openModal() {
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('modal-enter');
-            modal.classList.add('modal-enter-active');
-            sheet.classList.remove('sheet-enter');
-            sheet.classList.add('sheet-enter-active');
-        }, 10);
-        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-    }
+        <!-- Booking Cards List -->
+        <div id="bookingsList" class="flex flex-col gap-stack-md">
+            <!-- سيتم توليد البطاقات هنا عبر الجافاسكريبت -->
+            <div class="text-center p-8 text-on-surface-variant">جاري الاتصال بالنظام...</div>
+        </div>
+    </main>
 
-    function closeModal() {
-        modal.classList.remove('modal-enter-active');
-        modal.classList.add('modal-enter');
-        sheet.classList.remove('sheet-enter-active');
-        sheet.classList.add('sheet-enter');
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
-    }
+    <!-- Floating Action Button -->
+    <button class="fixed bottom-[40px] left-container-margin w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-30" onclick="openModal()">
+        <span class="material-symbols-outlined text-[28px]">add</span>
+    </button>
 
-    // 4. إرسال الطلب اليدوي الآمن
-    document.getElementById('emergencyForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const name = document.getElementById('patientName').value.trim();
-        const phone = document.getElementById('patientPhone').value.trim();
+    <!-- Bottom Sheet Modal (Emergency Booking) -->
+    <div class="fixed inset-0 z-50 modal-enter hidden" id="emergencyModal">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeModal()"></div>
+        <!-- Sheet -->
+        <div class="absolute bottom-0 w-full bg-surface-container-lowest rounded-t-xl p-section-padding pb-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sheet-enter" id="modalSheet">
+            <div class="w-12 h-1.5 bg-surface-variant rounded-full mx-auto mb-stack-md cursor-grab active:cursor-grabbing"></div>
+            <div class="flex items-center gap-2 mb-stack-lg">
+                <div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">emergency</span>
+                </div>
+                <h2 class="font-headline-md-mobile text-headline-md-mobile text-on-surface font-bold">حجز جديد سريع (طوارئ)</h2>
+            </div>
+            
+            <!-- أضفنا ID للنموذج وللحقول -->
+            <form id="emergencyForm" class="flex flex-col gap-stack-md">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">person</span>
+                    <input id="patientName" class="w-full bg-surface-container border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-12 py-3.5 outline-none transition-all placeholder:text-outline" placeholder="اسم المريض بالكامل" required="" type="text"/>
+                </div>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">phone_iphone</span>
+                    <input id="patientPhone" class="w-full bg-surface-container border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-12 py-3.5 outline-none transition-all placeholder:text-outline text-left" dir="ltr" placeholder="رقم الهاتف للتواصل" required="" type="tel"/>
+                </div>
+                <button type="submit" id="submitBtn" class="w-full bg-primary text-on-primary rounded-full py-4 mt-2 font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
+                    تأكيد طلب الطوارئ
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+            </form>
+        </div>
+    </div>
 
-        if (!name || !phone) {
-            tg.showAlert("يرجى إدخال الاسم ورقم الهاتف.");
-            return;
+    <!-- الكود البرمجي المدمج والمُصحح -->
+    <script>
+        // 1. تهيئة تليجرام
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // 2. إعدادات Supabase (تأكد من الروابط)
+        const SUPABASE_URL = 'https://zvxzdihonmlglrufrjjl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHpkaWhvbm1sZ2xydWZyampsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMjA3MjEsImV4cCI6MjA5ODU5NjcyMX0.cZi4F0K28AiT2aXdr4MUCLbub-zUPUXP1IlPntcxEv8
+';
+        let supabaseClient;
+
+        // 3. إدارة الواجهة (التبويبات والنوافذ)
+        const modal = document.getElementById('emergencyModal');
+        const sheet = document.getElementById('modalSheet');
+        let currentStatus = 'pending';
+
+        function openModal() {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('modal-enter');
+                modal.classList.add('modal-enter-active');
+                sheet.classList.remove('sheet-enter');
+                sheet.classList.add('sheet-enter-active');
+            }, 10);
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         }
 
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.innerHTML = 'جاري التسجيل...';
-        submitBtn.disabled = true;
-
-        try {
-            const { error } = await supabaseClient.rpc('create_emergency_booking', {
-                p_name: name,
-                p_phone: phone,
-                p_source: 'telegram_miniapp'
-            });
-
-            if (error) throw error;
-
-            tg.HapticFeedback.notificationOccurred('success');
-            closeModal();
-            document.getElementById('emergencyForm').reset();
-            
-            // تحديث القائمة بعد الإضافة
-            const activeTab = document.querySelector('.tab-btn.bg-primary-container').dataset.target;
-            fetchBookings(activeTab);
-
-        } catch (err) {
-            tg.showAlert("حدث خطأ أثناء التسجيل.");
-            console.error(err);
-        } finally {
-            submitBtn.innerHTML = 'تأكيد طلب الطوارئ';
-            submitBtn.disabled = false;
+        function closeModal() {
+            modal.classList.remove('modal-enter-active');
+            modal.classList.add('modal-enter');
+            sheet.classList.remove('sheet-enter-active');
+            sheet.classList.add('sheet-enter');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
-    });
 
-    // 5. التبويبات وجلب الحجوزات
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // إعادة ضبط شكل التبويبات
-            tabs.forEach(t => {
-                t.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container-low text-on-surface-variant hover:bg-surface-container whitespace-nowrap transition-all duration-200';
+        // إعداد التبويبات
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+                
+                // تغيير التصميم
+                tabs.forEach(t => t.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200');
+                tab.className = 'tab-btn active px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200';
+                
+                currentStatus = tab.dataset.status;
+                fetchBookings(currentStatus);
             });
-            // تفعيل التبويب الحالي
-            tab.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200';
-            
-            if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-
-            // خريطة تحويل التبويبات إلى حالات قاعدة البيانات
-            const statusMap = { 'new': 'pending', 'progress': 'in_progress', 'completed': 'completed', 'cancelled': 'cancelled' };
-            fetchBookings(statusMap[tab.dataset.target]);
         });
-    });
 
-    // 6. دالة جلب الحجوزات ورسمها
-    async function fetchBookings(status) {
-        const list = document.getElementById('bookingsList');
-        list.innerHTML = '<div class="text-center p-4">جاري التحميل...</div>';
+        // 4. المصادقة والاتصال بـ Supabase
+        async function initApp() {
+            try {
+                // محاولة المصادقة عبر Edge Function (يعمل فقط داخل تليجرام)
+                if (tg.initData) {
+                    const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ initData: tg.initData })
+                    });
+                    
+                    if (authResponse.ok) {
+                        const authData = await authResponse.json();
+                        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                            global: { headers: { Authorization: `Bearer ${authData.token}` } }
+                        });
+                    } else {
+                        throw new Error('فشل المصادقة');
+                    }
+                } else {
+                    // للتجربة خارج تليجرام (متصفح عادي)
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                }
 
-        const { data, error } = await supabaseClient
-            .from('bookings')
-            .select('id, patient_name, patient_phone, status, created_at')
-            .eq('status', status)
-            .order('created_at', { ascending: false });
+                // بدء جلب البيانات
+                fetchBookings(currentStatus);
+                subscribeToRealtime();
 
-        if (error) {
-            list.innerHTML = '<div class="text-center text-red-500">حدث خطأ في تحميل البيانات</div>';
-            return;
+            } catch (error) {
+                console.error('Auth Error:', error);
+                document.getElementById('bookingsList').innerHTML = `<div class="text-center p-4 text-error">خطأ في المصادقة. افتح من داخل تليجرام.</div>`;
+            }
         }
 
-        if (data.length === 0) {
-            list.innerHTML = '<div class="text-center p-4 text-gray-500">لا توجد حجوزات في هذه الحالة</div>';
-            return;
-        }
+        // 5. جلب ورسم الحجوزات
+        async function fetchBookings(status) {
+            if (!supabaseClient) return;
+            const list = document.getElementById('bookingsList');
+            list.innerHTML = '<div class="text-center p-8 text-on-surface-variant animate-pulse">جاري التحميل...</div>';
 
-        list.innerHTML = data.map(booking => `
-            <div class="bg-surface-container-lowest rounded-2xl p-section-padding shadow-[0_4px_20px_rgba(15,23,42,0.05)] flex flex-col gap-stack-sm relative overflow-hidden group">
-                <div class="flex justify-between items-start">
-                    <div class="pr-2">
-                        <h3 class="font-headline-md-mobile text-headline-md-mobile text-on-surface mb-1">${booking.patient_name}</h3>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">📞 ${booking.patient_phone}</p>
+            const { data, error } = await supabaseClient
+                .from('bookings')
+                .select('id, patient_name, patient_phone, status, created_at')
+                .eq('status', status)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                list.innerHTML = `<div class="text-center p-4 text-error">حدث خطأ في تحميل البيانات</div>`;
+                return;
+            }
+
+            if (data.length === 0) {
+                list.innerHTML = `<div class="text-center p-8 text-on-surface-variant">لا توجد حجوزات في هذه الحالة</div>`;
+                return;
+            }
+
+            // رسم البطاقات
+            list.innerHTML = data.map(booking => {
+                // تحديد لون الشارة حسب الحالة
+                let badgeClass = 'bg-tertiary-fixed text-on-tertiary-fixed';
+                let badgeText = 'قيد الانتظار';
+                let icon = 'schedule';
+                
+                if(booking.status === 'in_progress') { badgeClass = 'bg-primary-fixed text-on-primary-fixed'; badgeText = 'جاري التنفيذ'; icon = 'vital_signs'; }
+                else if(booking.status === 'completed') { badgeClass = 'bg-secondary-fixed text-on-secondary-fixed'; badgeText = 'مكتمل'; icon = 'check_circle'; }
+                else if(booking.status === 'cancelled') { badgeClass = 'bg-error-container text-on-error-container'; badgeText = 'ملغي'; icon = 'cancel'; }
+
+                // حساب الوقت المنقضي تقريباً
+                const date = new Date(booking.created_at);
+                const today = new Date();
+                const diffHours = Math.floor((today - date) / (1000 * 60 * 60));
+                const timeString = diffHours < 1 ? 'منذ أقل من ساعة' : `منذ ${diffHours} ساعة`;
+
+                return `
+                <div class="bg-surface-container-lowest rounded-2xl p-section-padding shadow-[0_4px_20px_rgba(15,23,42,0.05)] flex flex-col gap-stack-sm relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-1 h-full ${booking.status === 'pending' ? 'bg-tertiary-container' : 'bg-primary'} rounded-r-2xl"></div>
+                    <div class="flex justify-between items-start">
+                        <div class="pr-2">
+                            <h3 class="font-bold text-[18px] text-on-surface mb-1">${booking.patient_name}</h3>
+                            <p class="font-body-sm text-on-surface-variant flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px] text-outline">call</span>
+                                <span dir="ltr">${booking.patient_phone}</span>
+                            </p>
+                        </div>
+                        <span class="${badgeClass} px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">${icon}</span>
+                            ${badgeText}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-surface-container">
+                        <div class="flex items-center gap-1 text-outline">
+                            <span class="material-symbols-outlined text-[14px]">schedule</span>
+                            <p class="text-[12px]">${timeString}</p>
+                        </div>
+                        <button onclick="tg.showAlert('جارٍ تطوير صفحة التفاصيل...')" class="text-primary text-[14px] font-bold flex items-center gap-1 hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors">
+                            التفاصيل
+                            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
                     </div>
                 </div>
-                <div class="flex justify-between items-center mt-3 pt-3 border-t border-surface-container-highest">
-                    <button onclick="tg.showAlert('نافذة التفاصيل قيد التطوير')" class="text-primary font-label-md text-label-md flex items-center gap-1 hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors">
-                        التفاصيل <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    }
+                `;
+            }).join('');
+        }
 
-    // التشغيل الأولي
-    fetchBookings('pending');
-</script>
+        // 6. إرسال الطلب اليدوي الآمن
+        document.getElementById('emergencyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('patientName').value.trim();
+            const phone = document.getElementById('patientPhone').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+
+            submitBtn.innerHTML = 'جاري التسجيل...';
+            submitBtn.disabled = true;
+
+            try {
+                // استدعاء دالة RPC التي أنشأناها مسبقاً
+                const { error } = await supabaseClient.rpc('create_emergency_booking', {
+                    p_name: name,
+                    p_phone: phone,
+                    p_source: 'telegram_miniapp'
+                });
+
+                if (error) throw error;
+
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                closeModal();
+                document.getElementById('emergencyForm').reset();
+                fetchBookings(currentStatus); // تحديث القائمة فوراً
+
+            } catch (err) {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                tg.showAlert("حدث خطأ أثناء التسجيل. تأكد من إعداد دالة RPC في قاعدة البيانات.");
+                console.error(err);
+            } finally {
+                submitBtn.innerHTML = `تأكيد طلب الطوارئ <span class="material-symbols-outlined text-[18px]">arrow_forward</span>`;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // 7. التحديث اللحظي (Realtime Sync)
+        function subscribeToRealtime() {
+            supabaseClient
+                .channel('public:bookings')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, payload => {
+                    fetchBookings(currentStatus);
+                })
+                .subscribe();
+        }
+
+        // تشغيل التطبيق
+        initApp();
+    </script>
+</body>
+</html>
