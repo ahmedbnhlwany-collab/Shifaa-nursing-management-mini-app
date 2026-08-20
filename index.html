@@ -300,18 +300,22 @@
         tg.expand();
         tg.ready();
 
-        // دالة حماية النصوص
+        // دالة حماية النصوص لضمان عدم تعطل الأزرار
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         // 2. إعدادات Supabase
         const SUPABASE_URL = 'https://zvxzdihonmlglrufrjjl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHpkaWhvbm1sZ2xydWZyampsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMjA3MjEsImV4cCI6MjA5ODU5NjcyMX0.cZi4F0K28AiT2aXdr4MUCLbub-zUPUXP1IlPntcxEv8';
         
-        // 💡 تنبيه: يجب تفعيل RLS في Supabase للجداول: bookings, services, nurses, order_items
-        // 💡 تم استخدام let بدلاً من const لكي نتمكن من إعادة تعيين العميل بعد التحقق
+        // 💡 تذكير: يجب تفعيل RLS على الجداول
         let supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentStatus = 'pending';
 
@@ -349,7 +353,7 @@
         let allServices = [];
         let bookingCart = [];
 
-        // دالة إغلاق مخصصة لتنظيف الذاكرة والحقول
+        // دالة الإغلاق والتنظيف
         function closeDetailsModal() {
             closeGenericModal('detailsModal', 'detailsSheet');
             currentEditingBookingId = null;
@@ -358,7 +362,7 @@
             bookingCart = []; 
             renderCart(); 
             
-            // إفراغ الحقول لمنع تداخل البيانات
+            // إفراغ الحقول
             document.getElementById('detailNurse').value = '';
             document.getElementById('detailScheduledAt').value = '';
             document.getElementById('detailAddress').value = '';
@@ -367,7 +371,7 @@
             document.getElementById('detailAdminNotes').value = '';
         }
 
-        // جلب تفاصيل الحجز وفتح النافذة
+        // جلب البيانات الدقيقة للحجز
         async function fetchAndOpenDetails(bookingId, patientName, patientPhone, status) {
             currentEditingBookingId = bookingId;
             document.getElementById('detailPatientName').innerText = patientName;
@@ -379,10 +383,10 @@
 
             if(!nursesLoaded) await loadAvailableNurses();
 
-            // جلب البيانات الإضافية
+            // استخدام select(*) لضمان عدم تعطل الطلب لو اختلفت أسماء بعض الأعمدة
             const { data, error } = await supabaseClient
                 .from('bookings')
-                .select('nurse_id, scheduled_at, patient_rating, nurse_rating, address, notes')
+                .select('*')
                 .eq('id', bookingId).single();
 
             if (data && !error) {
@@ -423,10 +427,10 @@
         }
 
         // ==========================================
-        // دوال الحفظ للأقسام المختلفة
+        // دوال الحفظ للأقسام
         // ==========================================
         
-        // 1. حفظ القسم الإداري
+        // 1. الإداري
         async function saveAdminData() {
             const status = document.getElementById('detailStatus').value;
             const nurse_id = document.getElementById('detailNurse').value;
@@ -452,7 +456,7 @@
             }
         }
 
-        // 2. حفظ الجدولة والموقع
+        // 2. الجدولة
         async function saveScheduleData() {
             const scheduled_at = document.getElementById('detailScheduledAt').value;
             const address = document.getElementById('detailAddress').value; 
@@ -478,7 +482,7 @@
             }
         }
 
-        // 3. حفظ التقييمات والملاحظات
+        // 3. التقييمات
         async function saveReviewsData() {
             const pRating = document.getElementById('detailPatientRating').value;
             const nRating = document.getElementById('detailNurseRating').value;
@@ -507,7 +511,7 @@
         }
 
         // ==========================================
-        // إدارة السلة (المالية والخدمات)
+        // المالية والخدمات (السلة)
         // ==========================================
         async function loadAvailableNurses() {
             const nurseSelect = document.getElementById('detailNurse');
@@ -530,9 +534,10 @@
         function addServiceToCart() {
             const select = document.getElementById('serviceSelect');
             if(!select.value) return;
-            const service = allServices.find(s => s.id === select.value);
+            const serviceIdString = String(select.value);
+            const service = allServices.find(s => String(s.id) === serviceIdString);
             
-            if(bookingCart.find(item => item.service_id === service.id)) {
+            if(bookingCart.find(item => String(item.service_id) === serviceIdString)) {
                 tg.showAlert("الخدمة مضافة مسبقاً للسلة!"); return;
             }
 
@@ -543,7 +548,7 @@
         }
 
         function removeService(serviceId) {
-            bookingCart = bookingCart.filter(item => item.service_id !== serviceId);
+            bookingCart = bookingCart.filter(item => String(item.service_id) !== String(serviceId));
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             renderCart();
         }
@@ -568,7 +573,7 @@
             totalDisplay.innerText = total.toFixed(2);
         }
 
-        // 4. دالة الحفظ المالي (باستخدام دالة RPC المبرمجة مسبقاً)
+        // 4. الحفظ المالي المعتمد على الـ RPC
         async function saveFinancials() {
             if(bookingCart.length === 0) { 
                 tg.showAlert("يرجى إضافة خدمة واحدة على الأقل للسلة."); 
@@ -583,8 +588,7 @@
             const transactionType = document.getElementById('transactionType').value;
 
             try {
-                // نعتمد هنا على الـ RPC (update_booking_financials) التي صممتها في قاعدة بياناتك.
-                // هذه الدالة ستقوم بتحديث إجمالي الحجز (bookings) وإدخال عناصر السلة في جدول (order_items) أوتوماتيكياً بأمان تام.
+                // نعتمد على الدالة المبرمجة مسبقاً لحفظ الإجمالي وعناصر السلة بأمان تام كعملية واحدة (Atomic)
                 const { error } = await supabaseClient.rpc('update_booking_financials', {
                     p_booking_id: currentEditingBookingId,
                     p_cart_data: bookingCart,
@@ -594,13 +598,15 @@
                 });
                 
                 if (error) throw error;
+                
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 tg.showAlert("تم حفظ الخدمات وتحديث القيد المالي بنجاح!");
                 closeDetailsModal();
                 fetchBookings(currentStatus);
+                
             } catch (err) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                tg.showAlert("حدث خطأ مالي. تأكد من إعداد الدالة (update_booking_financials) بشكل صحيح.");
+                tg.showAlert("حدث خطأ مالي. تأكد من إعدادات قاعدة البيانات.");
                 console.error(err);
             } finally {
                 btn.innerHTML = 'تأكيد وحفظ الفاتورة'; 
@@ -609,7 +615,7 @@
         }
 
         // ==========================================
-        // الإعداد الرئيسي وجلب القوائم والمصادقة
+        // الإعداد الرئيسي والاتصال
         // ==========================================
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
@@ -626,7 +632,6 @@
             try {
                 if (!tg.initData) throw new Error("لم يتم العثور على بيانات تليجرام. افتح من الزر المخصص داخل البوت.");
                 
-                // المصادقة وجلب التوكن
                 const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ initData: tg.initData })
@@ -636,7 +641,7 @@
                 
                 const authData = await authResponse.json();
                 
-                // إعادة تعيين العميل بالتوكن الصحيح لاختراق جدار RLS
+                // إعادة تعيين العميل بالتوكن الصحيح لاختراق جدار الحماية
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                     global: { headers: { Authorization: `Bearer ${authData.token}` } }
                 });
