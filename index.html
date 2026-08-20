@@ -103,6 +103,60 @@
         <span class="material-symbols-outlined text-[28px]">add</span>
     </button>
 
+    <!-- نافذة تفاصيل الحجز (Details Modal) -->
+    <div class="fixed inset-0 z-50 modal-enter hidden" id="detailsModal">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDetailsModal()"></div>
+        <!-- Sheet -->
+        <div class="absolute bottom-0 w-full h-[85vh] bg-surface-container-lowest rounded-t-2xl shadow-2xl sheet-enter flex flex-col" id="detailsSheet">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center p-4 border-b border-surface-container">
+                <h2 class="font-headline-md-mobile font-bold text-on-surface">تفاصيل الحجز</h2>
+                <button onclick="closeDetailsModal()" class="w-8 h-8 bg-surface-container rounded-full flex items-center justify-center text-on-surface-variant active:scale-90">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- معلومات المريض والحالة -->
+            <div class="p-6 bg-surface flex flex-col items-center border-b border-surface-container">
+                <div class="w-16 h-16 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center mb-3">
+                    <span class="material-symbols-outlined text-[32px]">person</span>
+                </div>
+                <h3 id="detailPatientName" class="font-bold text-[20px] text-on-surface">جاري التحميل...</h3>
+                <p id="detailPatientPhone" class="text-on-surface-variant mt-1" dir="ltr">---</p>
+                
+                <div class="mt-4 w-full max-w-[200px]">
+                    <select id="detailStatus" class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-2 font-bold text-center outline-none focus:border-primary appearance-none">
+                        <option value="pending">قيد الانتظار</option>
+                        <option value="in_progress">جاري التنفيذ</option>
+                        <option value="completed">مكتمل</option>
+                        <option value="cancelled">ملغي</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- نموذج التعديل (اختيار الممرض) -->
+            <div class="flex-1 overflow-y-auto p-section-padding space-y-6">
+                <div>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface">تعيين ممرض للزيارة</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">medical_services</span>
+                        <select id="detailNurse" class="w-full bg-surface-container border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-12 py-3.5 outline-none transition-all appearance-none text-on-surface">
+                            <option value="">-- لم يتم التعيين --</option>
+                            <!-- سيتم تعبئة الممرضين المتاحين هنا -->
+                        </select>
+                    </div>
+                </div>
+
+                <button id="saveDetailsBtn" onclick="saveBookingDetails()" class="w-full bg-primary text-on-primary rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
+                    حفظ التعديلات
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Sheet Modal (Emergency Booking) -->
     <div class="fixed inset-0 z-50 modal-enter hidden" id="emergencyModal">
         <!-- Backdrop -->
@@ -117,7 +171,6 @@
                 <h2 class="font-headline-md-mobile text-headline-md-mobile text-on-surface font-bold">حجز جديد سريع (طوارئ)</h2>
             </div>
             
-            <!-- أضفنا ID للنموذج وللحقول -->
             <form id="emergencyForm" class="flex flex-col gap-stack-md">
                 <div class="relative">
                     <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">person</span>
@@ -171,6 +224,96 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
+        // ==========================================
+        // أكواد نافذة التفاصيل الجديدة (Details Modal)
+        // ==========================================
+        const detailsModal = document.getElementById('detailsModal');
+        const detailsSheet = document.getElementById('detailsSheet');
+        let currentEditingBookingId = null;
+        let nursesLoaded = false;
+
+        async function openDetailsModal(bookingId, patientName, patientPhone, status) {
+            currentEditingBookingId = bookingId;
+            document.getElementById('detailPatientName').innerText = patientName;
+            document.getElementById('detailPatientPhone').innerText = patientPhone;
+            document.getElementById('detailStatus').value = status;
+            
+            detailsModal.classList.remove('hidden');
+            setTimeout(() => {
+                detailsModal.classList.remove('modal-enter');
+                detailsModal.classList.add('modal-enter-active');
+                detailsSheet.classList.remove('sheet-enter');
+                detailsSheet.classList.add('sheet-enter-active');
+            }, 10);
+            
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            // جلب الممرضين المتاحين إذا لم يتم جلبهم
+            if(!nursesLoaded) await loadAvailableNurses();
+        }
+
+        function closeDetailsModal() {
+            detailsModal.classList.remove('modal-enter-active');
+            detailsModal.classList.add('modal-enter');
+            detailsSheet.classList.remove('sheet-enter-active');
+            detailsSheet.classList.add('sheet-enter');
+            setTimeout(() => { detailsModal.classList.add('hidden'); }, 300);
+            currentEditingBookingId = null;
+        }
+
+        async function loadAvailableNurses() {
+            const nurseSelect = document.getElementById('detailNurse');
+            nurseSelect.innerHTML = '<option value="">جاري تحميل الممرضين...</option>';
+            
+            const { data, error } = await supabaseClient
+                .from('nurses')
+                .select('id, full_name')
+                .eq('is_available', true)
+                .eq('is_frozen', false);
+
+            if (error) {
+                console.error("Error loading nurses:", error);
+                nurseSelect.innerHTML = '<option value="">خطأ في تحميل الممرضين</option>';
+                return;
+            }
+
+            nurseSelect.innerHTML = '<option value="">-- لم يتم التعيين --</option>' + 
+                data.map(nurse => `<option value="${nurse.id}">${nurse.full_name}</option>`).join('');
+            
+            nursesLoaded = true;
+        }
+
+        async function saveBookingDetails() {
+            const newStatus = document.getElementById('detailStatus').value;
+            const newNurseId = document.getElementById('detailNurse').value;
+            const btn = document.getElementById('saveDetailsBtn');
+            
+            btn.innerHTML = 'جاري الحفظ...';
+            btn.disabled = true;
+
+            const updateData = { status: newStatus };
+            if (newNurseId) updateData.nurse_id = newNurseId;
+
+            const { error } = await supabaseClient
+                .from('bookings')
+                .update(updateData)
+                .eq('id', currentEditingBookingId);
+
+            btn.innerHTML = `حفظ التعديلات <span class="material-symbols-outlined text-[18px]">save</span>`;
+            btn.disabled = false;
+
+            if (error) {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                tg.showAlert("حدث خطأ أثناء الحفظ. تأكد من صلاحياتك.");
+                console.error(error);
+            } else {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                closeDetailsModal();
+                fetchBookings(currentStatus);
+            }
+        }
+        // ==========================================
+
         // إعداد التبويبات
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
@@ -186,41 +329,35 @@
             });
         });
 
-    // 4. المصادقة والاتصال بـ Supabase
-async function initApp() {
-    try {
-        // التأكد من أن التطبيق يفتح من داخل تليجرام
-        if (tg.initData) {
-            // استدعاء دالة Edge Function للمصادقة
-            const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ initData: tg.initData })
-            });
-            
-            if (authResponse.ok) {
-                const authData = await authResponse.json();
-                
-                // استخدام الـ Token الآمن العائد لتخطي جدار الـ RLS كطاقم عمل (Staff)
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                    global: { headers: { Authorization: `Bearer ${authData.token}` } }
-                });
+        // 4. المصادقة والاتصال بـ Supabase
+        async function initApp() {
+            try {
+                if (tg.initData) {
+                    const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ initData: tg.initData })
+                    });
+                    
+                    if (authResponse.ok) {
+                        const authData = await authResponse.json();
+                        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                            global: { headers: { Authorization: `Bearer ${authData.token}` } }
+                        });
 
-                // بدء جلب الحجوزات وتفعيل التحديث اللحظي
-                fetchBookings(currentStatus);
-                subscribeToRealtime();
-            } else {
-                throw new Error('فشل المصادقة مع الخادم');
+                        fetchBookings(currentStatus);
+                        subscribeToRealtime();
+                    } else {
+                        throw new Error('فشل المصادقة مع الخادم');
+                    }
+                } else {
+                    throw new Error('لم يتم العثور على بيانات تليجرام');
+                }
+            } catch (error) { 
+                console.error('Auth Error:', error);
+                document.getElementById('bookingsList').innerHTML = `<div class="text-center p-8 text-error font-bold bg-error-container rounded-2xl">عذراً، يجب فتح التطبيق من داخل تليجرام لتوثيق صلاحياتك كعضو في طاقم العمل.</div>`;
             }
-        } else {
-            throw new Error('لم يتم العثور على بيانات تليجرام');
         }
-
-    } catch (error) { // <-- هنا كان الخطأ الإملائي في الرسالة السابقة وتم تصحيحه
-        console.error('Auth Error:', error);
-        document.getElementById('bookingsList').innerHTML = `<div class="text-center p-8 text-error font-bold bg-error-container rounded-2xl">عذراً، يجب فتح التطبيق من داخل تليجرام لتوثيق صلاحياتك كعضو في طاقم العمل.</div>`;
-    }
-}
 
         // 5. جلب ورسم الحجوزات
         async function fetchBookings(status) {
@@ -246,7 +383,6 @@ async function initApp() {
 
             // رسم البطاقات
             list.innerHTML = data.map(booking => {
-                // تحديد لون الشارة حسب الحالة
                 let badgeClass = 'bg-tertiary-fixed text-on-tertiary-fixed';
                 let badgeText = 'قيد الانتظار';
                 let icon = 'schedule';
@@ -255,7 +391,6 @@ async function initApp() {
                 else if(booking.status === 'completed') { badgeClass = 'bg-secondary-fixed text-on-secondary-fixed'; badgeText = 'مكتمل'; icon = 'check_circle'; }
                 else if(booking.status === 'cancelled') { badgeClass = 'bg-error-container text-on-error-container'; badgeText = 'ملغي'; icon = 'cancel'; }
 
-                // حساب الوقت المنقضي تقريباً
                 const date = new Date(booking.created_at);
                 const today = new Date();
                 const diffHours = Math.floor((today - date) / (1000 * 60 * 60));
@@ -282,7 +417,8 @@ async function initApp() {
                             <span class="material-symbols-outlined text-[14px]">schedule</span>
                             <p class="text-[12px]">${timeString}</p>
                         </div>
-                        <button onclick="tg.showAlert('جارٍ تطوير صفحة التفاصيل...')" class="text-primary text-[14px] font-bold flex items-center gap-1 hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors">
+                        <!-- تم تغيير زر التفاصيل هنا ليفتح النافذة الجديدة -->
+                        <button onclick="openDetailsModal('${booking.id}', '${booking.patient_name}', '${booking.patient_phone}', '${booking.status}')" class="text-primary text-[14px] font-bold flex items-center gap-1 hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors">
                             التفاصيل
                             <span class="material-symbols-outlined text-[18px]">chevron_left</span>
                         </button>
@@ -304,7 +440,6 @@ async function initApp() {
             submitBtn.disabled = true;
 
             try {
-                // استدعاء دالة RPC التي أنشأناها مسبقاً
                 const { error } = await supabaseClient.rpc('create_emergency_booking', {
                     p_name: name,
                     p_phone: phone,
@@ -316,7 +451,7 @@ async function initApp() {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 closeModal();
                 document.getElementById('emergencyForm').reset();
-                fetchBookings(currentStatus); // تحديث القائمة فوراً
+                fetchBookings(currentStatus); 
 
             } catch (err) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
