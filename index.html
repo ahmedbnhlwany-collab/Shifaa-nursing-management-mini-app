@@ -582,31 +582,30 @@
             }
         }
 
-        async function loadServices() {
-            const { data, error } = await supabaseClient.from('services').select('*').eq('is_active', true);
-            if (!error && data) {
-                allServices = data;
-                document.getElementById('serviceSelect').innerHTML = '<option value="">-- اختر خدمة --</option>' +
-                    data.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${parseFloat(s.price).toFixed(2)} ج.م)</option>`).join('');
-            }
-        }
+       async function loadServices() {
+    const { data, error } = await supabaseClient.from('services').select('*').eq('is_active', true);
+    if (!error && data) {
+        allServices = data;
+        document.getElementById('serviceSelect').innerHTML = '<option value="">-- اختر خدمة --</option>' +
+            data.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${parseFloat(s.base_price).toFixed(2)} ج.م)</option>`).join('');
+    }
+}
 
         function addServiceToCart() {
-            const select = document.getElementById('serviceSelect');
-            if(!select.value) return;
-            // مقارنة نصية آمنة لتفادي مشاكل عدم تطابق النوع (رقم مقابل نص) بين قيمة القائمة ومعرف الخدمة
-            const service = allServices.find(s => String(s.id) === String(select.value));
-            if(!service) return;
+    const select = document.getElementById('serviceSelect');
+    if(!select.value) return;
+    const service = allServices.find(s => String(s.id) === String(select.value));
+    if(!service) return;
 
-            if(bookingCart.find(item => String(item.service_id) === String(service.id))) {
-                tg.showAlert("الخدمة مضافة مسبقاً للسلة!"); return;
-            }
+    if(bookingCart.find(item => String(item.service_id) === String(service.id))) {
+        tg.showAlert("الخدمة مضافة مسبقاً للسلة!"); return;
+    }
 
-            bookingCart.push({ service_id: service.id, service_name: service.name, qty: 1, price_at_time: service.price });
-            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-            renderCart();
-            select.value = '';
-        }
+    bookingCart.push({ service_id: service.id, service_name: service.name, qty: 1, price_at_time: service.base_price });
+    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    renderCart();
+    select.value = '';
+}
 
         function removeService(serviceId) {
             bookingCart = bookingCart.filter(item => String(item.service_id) !== String(serviceId));
