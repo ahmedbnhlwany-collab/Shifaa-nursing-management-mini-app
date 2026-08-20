@@ -93,7 +93,6 @@
 
         <!-- Booking Cards List -->
         <div id="bookingsList" class="flex flex-col gap-stack-md">
-            <!-- سيتم توليد البطاقات هنا عبر الجافاسكريبت -->
             <div class="text-center p-8 text-on-surface-variant">جاري الاتصال بالنظام...</div>
         </div>
     </main>
@@ -105,63 +104,92 @@
 
     <!-- نافذة تفاصيل الحجز (Details Modal) -->
     <div class="fixed inset-0 z-50 modal-enter hidden" id="detailsModal">
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDetailsModal()"></div>
-        <!-- Sheet -->
         <div class="absolute bottom-0 w-full h-[85vh] bg-surface-container-lowest rounded-t-2xl shadow-2xl sheet-enter flex flex-col" id="detailsSheet">
             
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b border-surface-container">
-                <h2 class="font-headline-md-mobile font-bold text-on-surface">تفاصيل الحجز</h2>
+                <h2 class="font-headline-md-mobile font-bold text-on-surface">إدارة الحجز</h2>
                 <button onclick="closeDetailsModal()" class="w-8 h-8 bg-surface-container rounded-full flex items-center justify-center text-on-surface-variant active:scale-90">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
 
-            <!-- معلومات المريض والحالة -->
-            <div class="p-6 bg-surface flex flex-col items-center border-b border-surface-container">
-                <div class="w-16 h-16 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center mb-3">
-                    <span class="material-symbols-outlined text-[32px]">person</span>
-                </div>
-                <h3 id="detailPatientName" class="font-bold text-[20px] text-on-surface">جاري التحميل...</h3>
-                <p id="detailPatientPhone" class="text-on-surface-variant mt-1" dir="ltr">---</p>
+            <!-- معلومات المريض والتبويبات -->
+            <div class="p-4 bg-surface flex flex-col items-center border-b border-surface-container">
+                <h3 id="detailPatientName" class="font-bold text-[18px] text-on-surface">---</h3>
+                <p id="detailPatientPhone" class="text-[14px] text-on-surface-variant mt-1" dir="ltr">---</p>
                 
-                <div class="mt-4 w-full max-w-[200px]">
-                    <select id="detailStatus" class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-2 font-bold text-center outline-none focus:border-primary appearance-none">
+                <div class="flex w-full mt-4 bg-surface-container-lowest rounded-lg overflow-hidden border border-surface-container p-1">
+                    <button onclick="switchModalTab('admin')" id="mTabAdmin" class="flex-1 py-2 text-[14px] font-bold bg-primary-container text-primary rounded-md">البيانات الإدارية</button>
+                    <button onclick="switchModalTab('finance')" id="mTabFinance" class="flex-1 py-2 text-[14px] font-bold text-on-surface-variant rounded-md">الخدمات والمالية</button>
+                </div>
+            </div>
+
+            <!-- التبويب الإداري (الممرض والحالة) -->
+            <div id="modalAdminSection" class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div>
+                    <label class="block text-[14px] font-bold mb-2">حالة الحجز</label>
+                    <select id="detailStatus" class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3 outline-none focus:border-primary">
                         <option value="pending">قيد الانتظار</option>
                         <option value="in_progress">جاري التنفيذ</option>
                         <option value="completed">مكتمل</option>
                         <option value="cancelled">ملغي</option>
                     </select>
                 </div>
-            </div>
-
-            <!-- نموذج التعديل (اختيار الممرض) -->
-            <div class="flex-1 overflow-y-auto p-section-padding space-y-6">
                 <div>
-                    <label class="block text-[14px] font-bold mb-2 text-on-surface">تعيين ممرض للزيارة</label>
+                    <label class="block text-[14px] font-bold mb-2">تعيين ممرض</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">medical_services</span>
-                        <select id="detailNurse" class="w-full bg-surface-container border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-12 py-3.5 outline-none transition-all appearance-none text-on-surface">
+                        <select id="detailNurse" class="w-full bg-surface-container border border-outline-variant rounded-xl px-12 py-3.5 outline-none focus:border-primary appearance-none">
                             <option value="">-- لم يتم التعيين --</option>
-                            <!-- سيتم تعبئة الممرضين المتاحين هنا -->
                         </select>
                     </div>
                 </div>
-
                 <button id="saveDetailsBtn" onclick="saveBookingDetails()" class="w-full bg-primary text-on-primary rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
                     حفظ التعديلات
                     <span class="material-symbols-outlined text-[18px]">save</span>
                 </button>
             </div>
+
+            <!-- التبويب المالي (الخدمات والدفع) -->
+            <div id="modalFinanceSection" class="flex-1 overflow-y-auto p-6 space-y-4 hidden flex-col">
+                <div>
+                    <label class="block text-[14px] font-bold mb-2">إضافة خدمة</label>
+                    <div class="flex gap-2">
+                        <select id="serviceSelect" class="flex-1 bg-surface-container border border-outline-variant rounded-xl px-4 py-3 outline-none focus:border-primary">
+                            <option value="">جاري التحميل...</option>
+                        </select>
+                        <button onclick="addServiceToCart()" class="bg-primary text-on-primary px-5 rounded-xl font-bold text-[20px]">+</button>
+                    </div>
+                </div>
+                
+                <!-- سلة الخدمات -->
+                <div class="bg-surface-container-low p-4 rounded-xl min-h-[120px] max-h-[180px] overflow-y-auto border border-surface-container" id="cartItemsList">
+                    <p class="text-center text-on-surface-variant text-[12px] mt-8">لم يتم إضافة خدمات بعد</p>
+                </div>
+
+                <div class="flex justify-between items-center font-bold text-[18px] border-t border-surface-container pt-4">
+                    <span>الإجمالي:</span>
+                    <span class="text-primary"><span id="cartTotalDisplay">0</span> د.ك</span>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-[14px] font-bold mb-2">نوع المعاملة</label>
+                    <select id="transactionType" class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3 mb-4 outline-none focus:border-primary">
+                        <option value="collected_by_nurse">تحصيل بواسطة الممرض</option>
+                        <option value="received_by_company">تحصيل مباشر للشركة</option>
+                    </select>
+                    <button id="saveFinBtn" onclick="saveFinancials()" class="w-full bg-tertiary-container text-on-tertiary-container rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform">حفظ الفاتورة والخدمات</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <!-- Bottom Sheet Modal (Emergency Booking) -->
     <div class="fixed inset-0 z-50 modal-enter hidden" id="emergencyModal">
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeModal()"></div>
-        <!-- Sheet -->
         <div class="absolute bottom-0 w-full bg-surface-container-lowest rounded-t-xl p-section-padding pb-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sheet-enter" id="modalSheet">
             <div class="w-12 h-1.5 bg-surface-variant rounded-full mx-auto mb-stack-md cursor-grab active:cursor-grabbing"></div>
             <div class="flex items-center gap-2 mb-stack-lg">
@@ -188,22 +216,24 @@
         </div>
     </div>
 
-    <!-- الكود البرمجي المدمج والمُصحح -->
+    <!-- الكود البرمجي -->
     <script>
         // 1. تهيئة تليجرام
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // 2. إعدادات Supabase (تأكد من الروابط)
+        // 2. إعدادات Supabase
         const SUPABASE_URL = 'https://zvxzdihonmlglrufrjjl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHpkaWhvbm1sZ2xydWZyampsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMjA3MjEsImV4cCI6MjA5ODU5NjcyMX0.cZi4F0K28AiT2aXdr4MUCLbub-zUPUXP1IlPntcxEv8';
         let supabaseClient;
+        let currentStatus = 'pending';
 
-        // 3. إدارة الواجهة (التبويبات والنوافذ)
+        // ==========================================
+        // إدارة نافذة إضافة المريض السريع (Emergency)
+        // ==========================================
         const modal = document.getElementById('emergencyModal');
         const sheet = document.getElementById('modalSheet');
-        let currentStatus = 'pending';
 
         function openModal() {
             modal.classList.remove('hidden');
@@ -225,12 +255,14 @@
         }
 
         // ==========================================
-        // أكواد نافذة التفاصيل الجديدة (Details Modal)
+        // إدارة نافذة التفاصيل والتبويبات
         // ==========================================
         const detailsModal = document.getElementById('detailsModal');
         const detailsSheet = document.getElementById('detailsSheet');
         let currentEditingBookingId = null;
         let nursesLoaded = false;
+        let allServices = [];
+        let bookingCart = [];
 
         async function openDetailsModal(bookingId, patientName, patientPhone, status) {
             currentEditingBookingId = bookingId;
@@ -238,6 +270,9 @@
             document.getElementById('detailPatientPhone').innerText = patientPhone;
             document.getElementById('detailStatus').value = status;
             
+            // فتح التبويب الإداري افتراضياً
+            switchModalTab('admin');
+
             detailsModal.classList.remove('hidden');
             setTimeout(() => {
                 detailsModal.classList.remove('modal-enter');
@@ -248,7 +283,6 @@
             
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-            // جلب الممرضين المتاحين إذا لم يتم جلبهم
             if(!nursesLoaded) await loadAvailableNurses();
         }
 
@@ -259,11 +293,40 @@
             detailsSheet.classList.add('sheet-enter');
             setTimeout(() => { detailsModal.classList.add('hidden'); }, 300);
             currentEditingBookingId = null;
+            
+            // إفراغ السلة عند الإغلاق
+            bookingCart = []; 
+            renderCart(); 
+        }
+
+        function switchModalTab(tab) {
+            if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            const btnAdmin = document.getElementById('mTabAdmin');
+            const btnFinance = document.getElementById('mTabFinance');
+            const secAdmin = document.getElementById('modalAdminSection');
+            const secFinance = document.getElementById('modalFinanceSection');
+
+            if(tab === 'admin') {
+                btnAdmin.className = 'flex-1 py-2 text-[14px] font-bold bg-primary-container text-primary rounded-md';
+                btnFinance.className = 'flex-1 py-2 text-[14px] font-bold text-on-surface-variant rounded-md';
+                secAdmin.classList.remove('hidden');
+                secFinance.classList.add('hidden');
+                secFinance.classList.remove('flex');
+            } else {
+                btnFinance.className = 'flex-1 py-2 text-[14px] font-bold bg-primary-container text-primary rounded-md';
+                btnAdmin.className = 'flex-1 py-2 text-[14px] font-bold text-on-surface-variant rounded-md';
+                secFinance.classList.remove('hidden');
+                secFinance.classList.add('flex');
+                secAdmin.classList.add('hidden');
+                
+                // تحميل الخدمات عند فتح التبويب المالي لأول مرة
+                if(allServices.length === 0) loadServices();
+            }
         }
 
         async function loadAvailableNurses() {
             const nurseSelect = document.getElementById('detailNurse');
-            nurseSelect.innerHTML = '<option value="">جاري تحميل الممرضين...</option>';
+            nurseSelect.innerHTML = '<option value="">جاري التحميل...</option>';
             
             const { data, error } = await supabaseClient
                 .from('nurses')
@@ -271,16 +334,13 @@
                 .eq('is_available', true)
                 .eq('is_frozen', false);
 
-            if (error) {
-                console.error("Error loading nurses:", error);
-                nurseSelect.innerHTML = '<option value="">خطأ في تحميل الممرضين</option>';
-                return;
+            if (!error && data) {
+                nurseSelect.innerHTML = '<option value="">-- لم يتم التعيين --</option>' + 
+                    data.map(nurse => `<option value="${nurse.id}">${nurse.full_name}</option>`).join('');
+                nursesLoaded = true;
+            } else {
+                nurseSelect.innerHTML = '<option value="">خطأ في التحميل</option>';
             }
-
-            nurseSelect.innerHTML = '<option value="">-- لم يتم التعيين --</option>' + 
-                data.map(nurse => `<option value="${nurse.id}">${nurse.full_name}</option>`).join('');
-            
-            nursesLoaded = true;
         }
 
         async function saveBookingDetails() {
@@ -305,46 +365,149 @@
             if (error) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 tg.showAlert("حدث خطأ أثناء الحفظ. تأكد من صلاحياتك.");
-                console.error(error);
             } else {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 closeDetailsModal();
                 fetchBookings(currentStatus);
             }
         }
-        // ==========================================
 
-        // إعداد التبويبات
+        // ==========================================
+        // إدارة الخدمات والسلة (Cart Logic)
+        // ==========================================
+        async function loadServices() {
+            const { data, error } = await supabaseClient.from('services').select('*').eq('is_active', true);
+            if (!error && data) {
+                allServices = data;
+                const select = document.getElementById('serviceSelect');
+                select.innerHTML = '<option value="">-- اختر خدمة --</option>' + 
+                    data.map(s => `<option value="${s.id}">${s.name} (${s.price} د.ك)</option>`).join('');
+            }
+        }
+
+        function addServiceToCart() {
+            const select = document.getElementById('serviceSelect');
+            const serviceId = select.value;
+            if(!serviceId) return;
+
+            const service = allServices.find(s => s.id === serviceId);
+            if(bookingCart.find(item => item.service_id === serviceId)) {
+                tg.showAlert("الخدمة مضافة مسبقاً للسلة!");
+                return;
+            }
+
+            bookingCart.push({
+                service_id: service.id,
+                service_name: service.name,
+                qty: 1,
+                price_at_time: service.price
+            });
+            
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            renderCart();
+            select.value = ''; 
+        }
+
+        function removeService(serviceId) {
+            bookingCart = bookingCart.filter(item => item.service_id !== serviceId);
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            renderCart();
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cartItemsList');
+            const totalDisplay = document.getElementById('cartTotalDisplay');
+            
+            if(bookingCart.length === 0) {
+                list.innerHTML = '<p class="text-center text-on-surface-variant text-[12px] mt-8">لم يتم إضافة خدمات بعد</p>';
+                totalDisplay.innerText = '0';
+                return;
+            }
+
+            let total = 0;
+            list.innerHTML = bookingCart.map(item => {
+                total += parseFloat(item.price_at_time);
+                return `
+                <div class="flex justify-between items-center bg-surface p-3 rounded-lg mb-2 shadow-sm border border-surface-container">
+                    <div>
+                        <p class="font-bold text-[14px] text-on-surface">${item.service_name}</p>
+                        <p class="text-[12px] text-on-surface-variant">${item.price_at_time} د.ك</p>
+                    </div>
+                    <button onclick="removeService('${item.service_id}')" class="text-error w-8 h-8 flex items-center justify-center bg-error-container rounded-full active:scale-90">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                </div>
+                `;
+            }).join('');
+            
+            totalDisplay.innerText = total.toFixed(2);
+        }
+
+        async function saveFinancials() {
+            if(bookingCart.length === 0) {
+                tg.showAlert("يرجى إضافة خدمة واحدة على الأقل للسلة.");
+                return;
+            }
+
+            const btn = document.getElementById('saveFinBtn');
+            btn.innerHTML = 'جاري الحفظ...';
+            btn.disabled = true;
+
+            let totalAmount = bookingCart.reduce((sum, item) => sum + parseFloat(item.price_at_time), 0);
+            const transactionType = document.getElementById('transactionType').value;
+
+            try {
+                const { error } = await supabaseClient.rpc('update_booking_financials', {
+                    p_booking_id: currentEditingBookingId,
+                    p_cart_data: bookingCart,
+                    p_total_amount: totalAmount,
+                    p_transaction_type: transactionType,
+                    p_log_date: new Date().toISOString()
+                });
+
+                if (error) throw error;
+
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("تم حفظ الخدمات وتحديث القيد المالي بنجاح!");
+                closeDetailsModal();
+                fetchBookings(currentStatus);
+                
+            } catch (err) {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                tg.showAlert("حدث خطأ مالي. تأكد من إعداد الدالة في قاعدة البيانات.");
+                console.error(err);
+            } finally {
+                btn.innerHTML = 'حفظ الفاتورة والخدمات';
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // الإعداد الرئيسي والاتصال بقاعدة البيانات
+        // ==========================================
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-                
-                // تغيير التصميم
                 tabs.forEach(t => t.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200');
                 tab.className = 'tab-btn active px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200';
-                
                 currentStatus = tab.dataset.status;
                 fetchBookings(currentStatus);
             });
         });
 
-       // 4. المصادقة والاتصال بـ Supabase (نسخة كشف الأخطاء)
         async function initApp() {
             try {
-                // 1. التحقق من وجود بيانات تليجرام
                 if (!tg.initData) {
-                    throw new Error("TG_INIT_DATA_MISSING: لم يتم العثور على بيانات تليجرام. تأكد من أن الزر مبرمج كـ Web App وليس كرابط عادي.");
+                    throw new Error("لم يتم العثور على بيانات تليجرام. افتح من الزر المخصص.");
                 }
 
-                // 2. إرسال الطلب
                 const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ initData: tg.initData })
                 });
                 
-                // 3. التحقق من رد الخادم
                 if (!authResponse.ok) {
                     const errText = await authResponse.text();
                     throw new Error(`SERVER_ERROR: ${authResponse.status} - ${errText}`);
@@ -352,7 +515,6 @@
                 
                 const authData = await authResponse.json();
                 
-                // 4. تسجيل الدخول
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                     global: { headers: { Authorization: `Bearer ${authData.token}` } }
                 });
@@ -362,15 +524,14 @@
 
             } catch (error) { 
                 console.error('Auth Error:', error);
-                // عرض الخطأ التقني الفعلي على الشاشة
                 document.getElementById('bookingsList').innerHTML = `
                     <div class="text-left p-6 text-error font-bold bg-error-container rounded-2xl" style="direction: ltr; word-break: break-all;">
-                        <span class="text-[12px] text-gray-500">تفاصيل الخطأ التقني:</span><br><br>
+                        <span class="text-[12px] text-gray-500">Error:</span><br><br>
                         ${error.message}
                     </div>`;
             }
         }
-        // 5. جلب ورسم الحجوزات
+
         async function fetchBookings(status) {
             if (!supabaseClient) return;
             const list = document.getElementById('bookingsList');
@@ -392,7 +553,6 @@
                 return;
             }
 
-            // رسم البطاقات
             list.innerHTML = data.map(booking => {
                 let badgeClass = 'bg-tertiary-fixed text-on-tertiary-fixed';
                 let badgeText = 'قيد الانتظار';
@@ -428,7 +588,6 @@
                             <span class="material-symbols-outlined text-[14px]">schedule</span>
                             <p class="text-[12px]">${timeString}</p>
                         </div>
-                        <!-- تم تغيير زر التفاصيل هنا ليفتح النافذة الجديدة -->
                         <button onclick="openDetailsModal('${booking.id}', '${booking.patient_name}', '${booking.patient_phone}', '${booking.status}')" class="text-primary text-[14px] font-bold flex items-center gap-1 hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors">
                             التفاصيل
                             <span class="material-symbols-outlined text-[18px]">chevron_left</span>
@@ -439,10 +598,8 @@
             }).join('');
         }
 
-        // 6. إرسال الطلب اليدوي الآمن
         document.getElementById('emergencyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const name = document.getElementById('patientName').value.trim();
             const phone = document.getElementById('patientPhone').value.trim();
             const submitBtn = document.getElementById('submitBtn');
@@ -456,17 +613,14 @@
                     p_phone: phone,
                     p_source: 'telegram_miniapp'
                 });
-
                 if (error) throw error;
-
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 closeModal();
                 document.getElementById('emergencyForm').reset();
                 fetchBookings(currentStatus); 
-
             } catch (err) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                tg.showAlert("حدث خطأ أثناء التسجيل. تأكد من إعداد دالة RPC في قاعدة البيانات.");
+                tg.showAlert("حدث خطأ أثناء التسجيل.");
                 console.error(err);
             } finally {
                 submitBtn.innerHTML = `تأكيد طلب الطوارئ <span class="material-symbols-outlined text-[18px]">arrow_forward</span>`;
@@ -474,7 +628,6 @@
             }
         });
 
-        // 7. التحديث اللحظي (Realtime Sync)
         function subscribeToRealtime() {
             supabaseClient
                 .channel('public:bookings')
@@ -484,7 +637,6 @@
                 .subscribe();
         }
 
-        // تشغيل التطبيق
         initApp();
     </script>
 </body>
