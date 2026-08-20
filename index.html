@@ -26,7 +26,10 @@
                     colors: {
                         "surface-container-highest": "#e0e3e5",
                         "surface-container": "#eceef0",
+                        "surface-container-low": "#f1f4f7",
                         "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed": "#001a41",
+                        "primary-shade": "#00348f",
                         "surface-variant": "#e0e3e5",
                         "primary-container": "#2563eb",
                         "on-primary-container": "#eeefff",
@@ -40,11 +43,15 @@
                         "outline-variant": "#c3c6d7",
                         "error-container": "#ffdad6",
                         "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
                         "tertiary-container": "#bc4800",
                         "tertiary-fixed": "#ffdbcd",
                         "on-tertiary-fixed": "#360f00",
                         "secondary": "#0053db",
                         "on-secondary": "#ffffff",
+                        "success-container": "#c6f0d2",
+                        "on-success-container": "#0b3b1c",
+                        "success": "#1e8e3e",
                     },
                     borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
                     spacing: { "stack-md": "1rem", "section-padding": "1.5rem", "container-margin": "1.25rem", "stack-sm": "0.5rem" },
@@ -66,22 +73,53 @@
         .sheet-enter { transform: translateY(100%); }
         .sheet-enter-active { transform: translateY(0); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         /* Tab Button Styling for 4 items */
-        .modal-tab-btn { flex: 1; padding: 0.5rem 0.25rem; font-size: 12px; font-weight: 700; border-radius: 0.375rem; text-align: center; transition: all 0.2s; white-space: nowrap; }
-        .modal-tab-btn.active { background-color: #2563eb; color: #ffffff; }
+        .modal-tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0.6rem 0.25rem; font-size: 11px; font-weight: 700; border-radius: 0.7rem; text-align: center; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; }
+        .modal-tab-btn .material-symbols-outlined { font-size: 19px; transition: all 0.25s; }
+        .modal-tab-btn.active { background-color: #2563eb; color: #ffffff; box-shadow: 0 6px 14px -4px rgba(37, 99, 235, 0.45); transform: translateY(-1px); }
         .modal-tab-btn.inactive { color: #434655; background-color: transparent; }
+        .modal-tab-btn.inactive:active { background-color: #eceef0; }
+        /* Status pill tabs (top level) */
+        .status-tab.active { box-shadow: 0 6px 14px -4px rgba(0, 74, 198, 0.35); }
+        /* Booking card entrance */
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .booking-card { animation: fadeSlideIn 0.35s ease-out backwards; }
+        /* Live pulse dot for in-progress visits */
+        @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(0.75); } }
+        .pulse-dot { animation: pulseDot 1.6s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+            .booking-card, .pulse-dot { animation: none; }
+        }
+        /* Reusable custom chevron for native selects (RTL: opens toward the left) */
+        .select-chevron {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23737686' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 0.85rem center;
+            background-size: 18px;
+        }
+        /* Focus visibility for keyboard users */
+        button:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid #004ac6;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body class="bg-surface text-on-surface font-body-sm min-h-screen relative overflow-x-hidden">
-    
+
     <!-- TopAppBar -->
-    <header class="fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-md shadow-sm flex justify-between items-center px-container-margin py-stack-sm rtl">
-        <div class="flex items-center gap-2 w-1/4">
-            <span class="font-display-lg-mobile text-display-lg-mobile text-primary font-bold">شفاء</span>
-        </div>
-        <div class="flex-1 max-w-sm mx-auto">
-            <div class="relative bg-surface-container-low rounded-full px-4 py-2 flex items-center shadow-inner">
-                <span class="material-symbols-outlined text-on-surface-variant mr-2 text-[20px]">search</span>
-                <input class="bg-transparent border-none focus:ring-0 text-body-sm w-full outline-none text-on-surface placeholder:text-on-surface-variant/70" placeholder="بحث عن مريض..." type="text"/>
+    <header class="fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/40 shadow-sm rtl">
+        <div class="flex items-center gap-3 px-container-margin py-stack-sm md:max-w-[600px] md:mx-auto">
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-[15px] font-display-lg-mobile font-bold shrink-0">ش</span>
+                <span class="font-display-lg-mobile text-display-lg-mobile text-primary font-bold hidden sm:inline">شفاء</span>
+            </div>
+            <div class="flex-1">
+                <div class="relative bg-surface-container-low rounded-full px-4 py-2.5 flex items-center gap-2 border border-outline-variant/30 focus-within:border-primary/50 transition-colors">
+                    <span class="material-symbols-outlined text-on-surface-variant text-[20px] shrink-0">search</span>
+                    <input id="patientSearchInput" class="bg-transparent border-none focus:ring-0 text-body-sm w-full outline-none text-on-surface placeholder:text-on-surface-variant/70" placeholder="بحث بالاسم أو رقم الهاتف..." type="text"/>
+                    <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="hidden text-on-surface-variant active:scale-90 transition-transform shrink-0" aria-label="مسح البحث">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -90,10 +128,10 @@
     <main class="pt-[80px] pb-[100px] px-container-margin md:max-w-[600px] md:mx-auto">
         <!-- Tabs -->
         <div class="flex overflow-x-auto hide-scrollbar gap-stack-sm py-stack-sm mb-stack-md" id="statusTabs">
-            <button class="tab-btn active px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200" data-status="pending">جديد</button>
-            <button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200" data-status="in_progress">جاري</button>
-            <button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200" data-status="completed">مكتمل</button>
-            <button class="tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200" data-status="cancelled">ملغي</button>
+            <button class="tab-btn status-tab active px-5 py-2.5 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container whitespace-nowrap transition-all duration-200 flex items-center gap-1.5" data-status="pending"><span class="material-symbols-outlined text-[16px]">schedule</span>جديد</button>
+            <button class="tab-btn status-tab px-5 py-2.5 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200 flex items-center gap-1.5" data-status="in_progress"><span class="material-symbols-outlined text-[16px]">vital_signs</span>جاري</button>
+            <button class="tab-btn status-tab px-5 py-2.5 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200 flex items-center gap-1.5" data-status="completed"><span class="material-symbols-outlined text-[16px]">check_circle</span>مكتمل</button>
+            <button class="tab-btn status-tab px-5 py-2.5 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200 flex items-center gap-1.5" data-status="cancelled"><span class="material-symbols-outlined text-[16px]">cancel</span>ملغي</button>
         </div>
 
         <!-- Booking Cards List -->
@@ -103,7 +141,8 @@
     </main>
 
     <!-- Floating Action Button -->
-    <button class="fixed bottom-[40px] left-container-margin w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-30" onclick="openGenericModal('emergencyModal', 'modalSheet')">
+    <button type="button" class="fixed bottom-[40px] left-container-margin w-14 h-14 bg-gradient-to-br from-primary to-primary-shade text-on-primary rounded-full shadow-[0_10px_24px_-6px_rgba(0,74,198,0.55)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-30" onclick="openGenericModal('emergencyModal', 'modalSheet')" aria-label="حجز جديد سريع">
+        <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-error border-2 border-surface"></span>
         <span class="material-symbols-outlined text-[28px]">add</span>
     </button>
 
@@ -115,118 +154,112 @@
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDetailsModal()"></div>
         <!-- Sheet -->
         <div class="absolute bottom-0 w-full h-[90vh] bg-surface-container-lowest rounded-t-2xl shadow-2xl sheet-enter flex flex-col" id="detailsSheet">
-            
+
             <!-- Header -->
             <div class="flex justify-between items-center p-4 border-b border-surface-container">
-                <h2 class="font-headline-md-mobile font-bold text-on-surface flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">manage_accounts</span> إدارة الحجز
+                <h2 class="font-headline-md-mobile text-[17px] font-bold text-on-surface flex items-center gap-2">
+                    <span class="w-9 h-9 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[19px]">manage_accounts</span>
+                    </span>
+                    إدارة الحجز
                 </h2>
-                <button onclick="closeDetailsModal()" class="w-8 h-8 bg-surface-container rounded-full flex items-center justify-center text-on-surface-variant active:scale-90">
+                <button type="button" onclick="closeDetailsModal()" class="w-9 h-9 bg-surface-container rounded-full flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform hover:bg-surface-container-highest" aria-label="إغلاق">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
 
             <!-- معلومات المريض والتبويبات الأربعة -->
-            <div class="p-4 bg-surface flex flex-col items-center border-b border-surface-container">
+            <div class="p-5 bg-gradient-to-b from-surface-container-low to-surface flex flex-col items-center border-b border-surface-container">
+                <div id="detailPatientAvatar" class="w-14 h-14 rounded-full bg-primary text-on-primary flex items-center justify-center text-[20px] font-bold shadow-md mb-2">-</div>
                 <h3 id="detailPatientName" class="font-bold text-[18px] text-on-surface">---</h3>
-                <p id="detailPatientPhone" class="text-[14px] text-on-surface-variant mt-1" dir="ltr">---</p>
-                
-                <!-- أزرار التبويبات -->
-                <div class="flex w-full mt-4 bg-surface-container-lowest rounded-lg overflow-x-auto hide-scrollbar border border-surface-container p-1 gap-1">
-                    <button onclick="switchModalTab('admin')" id="mTabAdmin" class="modal-tab-btn active">إداري</button>
-                    <button onclick="switchModalTab('schedule')" id="mTabSchedule" class="modal-tab-btn inactive">الجدولة</button>
-                    <button onclick="switchModalTab('finance')" id="mTabFinance" class="modal-tab-btn inactive">المالية</button>
-                    <button onclick="switchModalTab('reviews')" id="mTabReviews" class="modal-tab-btn inactive">التقييمات</button>
+                <p class="text-[13px] text-on-surface-variant mt-1 flex items-center gap-1.5" dir="ltr">
+                    <span class="material-symbols-outlined text-[14px]">call</span><span id="detailPatientPhone">---</span>
+                </p>
+
+                <!-- أزرار التبويبات: إداري، المالية، التقييمات، الجدولة -->
+                <div class="flex w-full mt-4 bg-surface-container-lowest rounded-2xl overflow-x-auto hide-scrollbar border border-surface-container p-1.5 gap-1 shadow-sm">
+                    <button type="button" onclick="switchModalTab('admin')" id="mTabAdmin" class="modal-tab-btn active"><span class="material-symbols-outlined">admin_panel_settings</span>إداري</button>
+                    <button type="button" onclick="switchModalTab('finance')" id="mTabFinance" class="modal-tab-btn inactive"><span class="material-symbols-outlined">payments</span>المالية</button>
+                    <button type="button" onclick="switchModalTab('reviews')" id="mTabReviews" class="modal-tab-btn inactive"><span class="material-symbols-outlined">reviews</span>التقييمات</button>
+                    <button type="button" onclick="switchModalTab('schedule')" id="mTabSchedule" class="modal-tab-btn inactive"><span class="material-symbols-outlined">calendar_month</span>الجدولة</button>
                 </div>
             </div>
 
             <!-- 1. التبويب الإداري -->
             <div id="secAdmin" class="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col">
                 <div>
-                    <label class="block text-[14px] font-bold mb-2">حالة الحجز</label>
-                    <select id="detailStatus" class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3 outline-none focus:border-primary">
-                        <option value="pending">قيد الانتظار</option>
-                        <option value="in_progress">جاري التنفيذ</option>
-                        <option value="completed">مكتمل</option>
-                        <option value="cancelled">ملغي</option>
-                    </select>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">حالة الحجز</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">flag</span>
+                        <select id="detailStatus" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-10 py-3.5 outline-none focus:border-primary appearance-none select-chevron font-bold transition-colors">
+                            <option value="pending">قيد الانتظار</option>
+                            <option value="in_progress">جاري التنفيذ</option>
+                            <option value="completed">مكتمل</option>
+                            <option value="cancelled">ملغي</option>
+                        </select>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-[14px] font-bold mb-2">تعيين ممرض</label>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">تعيين ممرض</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">medical_services</span>
-                        <select id="detailNurse" class="w-full bg-surface-container border border-outline-variant rounded-xl px-12 py-3.5 outline-none focus:border-primary appearance-none">
+                        <select id="detailNurse" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-10 py-3.5 outline-none focus:border-primary appearance-none select-chevron transition-colors">
                             <option value="">-- لم يتم التعيين --</option>
                         </select>
                     </div>
                 </div>
                 <div class="mt-auto pt-4 border-t border-surface-container">
-                    <button id="saveAdminBtn" onclick="saveAdminData()" class="w-full bg-primary text-on-primary rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
+                    <button type="button" id="saveAdminBtn" onclick="saveAdminData()" class="w-full bg-gradient-to-br from-primary to-primary-shade text-on-primary rounded-full py-4 font-bold shadow-[0_8px_20px_-6px_rgba(0,74,198,0.5)] active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
                         حفظ البيانات الإدارية <span class="material-symbols-outlined text-[18px]">save</span>
                     </button>
                 </div>
             </div>
 
-            <!-- 2. تبويب الجدولة والموقع -->
-            <div id="secSchedule" class="flex-1 overflow-y-auto p-6 space-y-6 hidden flex-col">
-                <div>
-                    <label class="block text-[14px] font-bold mb-2 text-on-surface">موعد الزيارة المحدد</label>
-                    <input type="datetime-local" id="detailScheduledAt" class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3.5 outline-none focus:border-primary font-bold text-on-surface" />
-                </div>
-                <div>
-                    <label class="block text-[14px] font-bold mb-2 text-on-surface">العنوان أو رابط الموقع (Location)</label>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute right-4 top-3.5 text-secondary text-[20px]">location_on</span>
-                        <input type="text" id="detailAddress" class="w-full bg-surface-container border border-outline-variant rounded-xl px-12 py-3.5 outline-none focus:border-primary placeholder:text-outline" placeholder="أدخل العنوان أو الصق رابط خرائط جوجل..." />
-                    </div>
-                </div>
-                <div class="mt-auto pt-4 border-t border-surface-container">
-                    <button id="saveScheduleBtn" onclick="saveScheduleData()" class="w-full bg-secondary text-on-secondary rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
-                        حفظ الجدولة والموقع <span class="material-symbols-outlined text-[18px]">map</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 3. التبويب المالي -->
+            <!-- 2. التبويب المالي -->
             <div id="secFinance" class="flex-1 overflow-y-auto p-6 space-y-4 hidden flex-col">
                 <div>
-                    <label class="block text-[14px] font-bold mb-2">إضافة خدمة</label>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">إضافة خدمة</label>
                     <div class="flex gap-2">
-                        <select id="serviceSelect" class="flex-1 bg-surface-container border border-outline-variant rounded-xl px-4 py-3 outline-none focus:border-primary">
-                            <option value="">جاري التحميل...</option>
-                        </select>
-                        <button onclick="addServiceToCart()" class="bg-primary text-on-primary px-5 rounded-xl font-bold text-[20px] active:scale-95">+</button>
+                        <div class="relative flex-1">
+                            <select id="serviceSelect" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-4 pl-9 py-3 outline-none focus:border-primary appearance-none select-chevron transition-colors">
+                                <option value="">جاري التحميل...</option>
+                            </select>
+                        </div>
+                        <button type="button" onclick="addServiceToCart()" class="bg-gradient-to-br from-primary to-primary-shade text-on-primary w-12 rounded-xl font-bold text-[22px] active:scale-95 shadow-sm shrink-0 flex items-center justify-center" aria-label="إضافة الخدمة للسلة">+</button>
                     </div>
                 </div>
-                
-                <div class="bg-surface-container-low p-4 rounded-xl min-h-[120px] max-h-[180px] overflow-y-auto border border-surface-container" id="cartItemsList">
+
+                <div class="bg-surface-container-low p-3 rounded-xl min-h-[120px] max-h-[180px] overflow-y-auto border border-surface-container" id="cartItemsList">
                     <p class="text-center text-on-surface-variant text-[12px] mt-8">لم يتم إضافة خدمات بعد</p>
                 </div>
-                
-                <div class="flex justify-between items-center font-bold text-[18px] border-t border-surface-container pt-4">
-                    <span>الإجمالي:</span>
-                    <span class="text-primary"><span id="cartTotalDisplay">0</span> د.ك</span>
+
+                <div class="flex justify-between items-center bg-primary-fixed rounded-xl px-4 py-3.5">
+                    <span class="font-bold text-[15px] text-on-primary-fixed">الإجمالي</span>
+                    <span class="text-on-primary-fixed font-bold text-[20px]"><span id="cartTotalDisplay">0.00</span> ج.م</span>
                 </div>
-                
+
                 <div class="mt-auto">
-                    <label class="block text-[14px] font-bold mb-2">نوع المعاملة</label>
-                    <select id="transactionType" class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3 mb-4 outline-none focus:border-primary">
-                        <option value="collected_by_nurse">تحصيل بواسطة الممرض</option>
-                        <option value="received_by_company">تحصيل مباشر للشركة</option>
-                    </select>
-                    <button id="saveFinBtn" onclick="saveFinancials()" class="w-full bg-tertiary-container text-on-tertiary-container rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform">
-                        تأكيد وحفظ الفاتورة
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">نوع المعاملة</label>
+                    <div class="relative mb-4">
+                        <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">account_balance_wallet</span>
+                        <select id="transactionType" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-10 py-3 outline-none focus:border-primary appearance-none select-chevron transition-colors">
+                            <option value="collected_by_nurse">تحصيل بواسطة الممرض</option>
+                            <option value="received_by_company">تحصيل مباشر للشركة</option>
+                        </select>
+                    </div>
+                    <button type="button" id="saveFinBtn" onclick="saveFinancials()" class="w-full bg-gradient-to-br from-tertiary-container to-[#8a3600] text-on-tertiary-container rounded-full py-4 font-bold shadow-[0_8px_20px_-6px_rgba(188,72,0,0.5)] active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
+                        تأكيد وحفظ الفاتورة <span class="material-symbols-outlined text-[18px]">receipt_long</span>
                     </button>
                 </div>
             </div>
 
-            <!-- 4. تبويب التقييمات والملاحظات -->
+            <!-- 3. تبويب التقييمات والملاحظات -->
             <div id="secReviews" class="flex-1 overflow-y-auto p-6 space-y-6 hidden flex-col">
                 <div>
-                    <label class="block text-[14px] font-bold mb-2">تقييم المريض للخدمة</label>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">تقييم المريض للخدمة</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute right-4 top-3.5 text-orange-400 text-[20px]">star</span>
-                        <select id="detailPatientRating" class="w-full bg-surface-container border border-outline-variant rounded-xl px-12 py-3.5 outline-none focus:border-primary appearance-none font-bold">
+                        <select id="detailPatientRating" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-10 py-3.5 outline-none focus:border-primary appearance-none select-chevron font-bold transition-colors">
                             <option value="">-- لم يتم التقييم --</option>
                             <option value="5">⭐⭐⭐⭐⭐ ممتاز (5)</option>
                             <option value="4">⭐⭐⭐⭐ جيد جداً (4)</option>
@@ -237,10 +270,10 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[14px] font-bold mb-2">تقييم الممرض للحالة</label>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">تقييم الممرض للحالة</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute right-4 top-3.5 text-primary text-[20px]">medical_information</span>
-                        <select id="detailNurseRating" class="w-full bg-surface-container border border-outline-variant rounded-xl px-12 py-3.5 outline-none focus:border-primary appearance-none font-bold">
+                        <select id="detailNurseRating" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-10 py-3.5 outline-none focus:border-primary appearance-none select-chevron font-bold transition-colors">
                             <option value="">-- لم يتم التقييم --</option>
                             <option value="5">⭐⭐⭐⭐⭐ ممتاز (5)</option>
                             <option value="4">⭐⭐⭐⭐ جيد جداً (4)</option>
@@ -251,8 +284,31 @@
                     </div>
                 </div>
                 <div class="mt-auto pt-4 border-t border-surface-container">
-                    <button id="saveReviewsBtn" onclick="saveReviewsData()" class="w-full bg-on-surface-variant text-surface rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform">
-                        حفظ التقييمات
+                    <button type="button" id="saveReviewsBtn" onclick="saveReviewsData()" class="w-full bg-gradient-to-br from-on-surface-variant to-on-surface text-surface rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
+                        حفظ التقييمات <span class="material-symbols-outlined text-[18px]">task_alt</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. تبويب الجدولة والموقع -->
+            <div id="secSchedule" class="flex-1 overflow-y-auto p-6 space-y-6 hidden flex-col">
+                <div>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">موعد الزيارة المحدد</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute right-4 top-3.5 text-secondary text-[20px]">event</span>
+                        <input type="datetime-local" id="detailScheduledAt" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-4 py-3.5 outline-none focus:border-primary font-bold text-on-surface transition-colors" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">العنوان أو رابط الموقع (Location)</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute right-4 top-3.5 text-secondary text-[20px]">location_on</span>
+                        <input type="text" id="detailAddress" class="w-full bg-surface-container border border-outline-variant rounded-xl px-12 py-3.5 outline-none focus:border-primary placeholder:text-outline transition-colors" placeholder="أدخل العنوان أو الصق رابط خرائط جوجل..." />
+                    </div>
+                </div>
+                <div class="mt-auto pt-4 border-t border-surface-container">
+                    <button type="button" id="saveScheduleBtn" onclick="saveScheduleData()" class="w-full bg-gradient-to-br from-secondary to-primary-shade text-on-secondary rounded-full py-4 font-bold shadow-[0_8px_20px_-6px_rgba(0,83,219,0.5)] active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
+                        حفظ الجدولة والموقع <span class="material-symbols-outlined text-[18px]">map</span>
                     </button>
                 </div>
             </div>
@@ -265,13 +321,16 @@
         <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeGenericModal('emergencyModal', 'modalSheet')"></div>
         <div class="absolute bottom-0 w-full bg-surface-container-lowest rounded-t-xl p-section-padding pb-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sheet-enter" id="modalSheet">
             <div class="w-12 h-1.5 bg-surface-variant rounded-full mx-auto mb-stack-md cursor-grab active:cursor-grabbing"></div>
-            <div class="flex items-center gap-2 mb-stack-lg">
-                <div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]">emergency</span>
+            <div class="flex items-center gap-3 mb-stack-lg">
+                <div class="w-11 h-11 rounded-full bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[22px]">emergency</span>
                 </div>
-                <h2 class="font-headline-md-mobile text-headline-md-mobile text-on-surface font-bold">حجز جديد سريع (طوارئ)</h2>
+                <div>
+                    <h2 class="font-headline-md-mobile text-headline-md-mobile text-on-surface font-bold leading-tight">حجز جديد سريع</h2>
+                    <p class="text-[12px] text-on-surface-variant mt-0.5">تسجيل طلب طوارئ بأقل بيانات ممكنة</p>
+                </div>
             </div>
-            
+
             <form id="emergencyForm" class="flex flex-col gap-stack-md">
                 <div class="relative">
                     <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">person</span>
@@ -281,7 +340,7 @@
                     <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">phone_iphone</span>
                     <input id="patientPhone" class="w-full bg-surface-container border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-12 py-3.5 outline-none transition-all placeholder:text-outline text-left" dir="ltr" placeholder="رقم الهاتف للتواصل" required="" type="tel"/>
                 </div>
-                <button type="submit" id="submitBtn" class="w-full bg-primary text-on-primary rounded-full py-4 mt-2 font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
+                <button type="submit" id="submitBtn" class="w-full bg-gradient-to-br from-primary to-primary-shade text-on-primary rounded-full py-4 mt-2 font-bold shadow-[0_8px_20px_-6px_rgba(0,74,198,0.5)] active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
                     تأكيد طلب الطوارئ
                     <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
@@ -296,10 +355,15 @@
         tg.expand();
         tg.ready();
 
-        // دالة حماية النصوص
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        // دالة حماية النصوص عند إدراجها كـ HTML (تمنع أي حقن أكواد من اسم/هاتف المريض)
+        function escapeHtml(value) {
+            if (value === null || value === undefined) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         // 2. إعدادات Supabase
@@ -307,6 +371,8 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHpkaWhvbm1sZ2xydWZyampsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMjA3MjEsImV4cCI6MjA5ODU5NjcyMX0.cZi4F0K28AiT2aXdr4MUCLbub-zUPUXP1IlPntcxEv8';
         let supabaseClient;
         let currentStatus = 'pending';
+        let currentSearchTerm = '';
+        let searchDebounceTimer = null;
 
         // ==========================================
         // إدارة النوافذ المنبثقة العامة
@@ -346,17 +412,18 @@
         function closeDetailsModal() {
             closeGenericModal('detailsModal', 'detailsSheet');
             currentEditingBookingId = null;
-            
+
             // إفراغ السلة
-            bookingCart = []; 
-            renderCart(); 
-            
-            // إفراغ الحقول لمنع تداخل البيانات
+            bookingCart = [];
+            renderCart();
+
+            // إفراغ الحقول لمنع تداخل البيانات بين حجز وآخر
             document.getElementById('detailNurse').value = '';
             document.getElementById('detailScheduledAt').value = '';
             document.getElementById('detailAddress').value = '';
             document.getElementById('detailPatientRating').value = '';
             document.getElementById('detailNurseRating').value = '';
+            document.getElementById('transactionType').value = 'collected_by_nurse';
         }
 
         // جلب تفاصيل الحجز وفتح النافذة
@@ -364,6 +431,7 @@
             currentEditingBookingId = bookingId;
             document.getElementById('detailPatientName').innerText = patientName;
             document.getElementById('detailPatientPhone').innerText = patientPhone;
+            document.getElementById('detailPatientAvatar').innerText = (patientName || '؟').trim().charAt(0);
             document.getElementById('detailStatus').value = status;
 
             // فتح النافذة فوراً على التبويب الإداري
@@ -381,25 +449,25 @@
 
             if (data && !error) {
                 if (data.nurse_id) document.getElementById('detailNurse').value = data.nurse_id;
-                
+
                 if (data.scheduled_at) {
                     // معالجة التاريخ ليتوافق مع حقل datetime-local
                     const d = new Date(data.scheduled_at);
                     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
                     document.getElementById('detailScheduledAt').value = d.toISOString().slice(0,16);
                 }
-                
+
                 if (data.notes) document.getElementById('detailAddress').value = data.notes;
                 if (data.patient_rating) document.getElementById('detailPatientRating').value = data.patient_rating;
                 if (data.nurse_rating) document.getElementById('detailNurseRating').value = data.nurse_rating;
             }
         }
 
-        // التبديل بين التبويبات الأربعة
+        // التبديل بين التبويبات الأربعة: إداري -> المالية -> التقييمات -> الجدولة
         function switchModalTab(tabName) {
             if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-            const tabs = ['Admin', 'Schedule', 'Finance', 'Reviews'];
-            
+            const tabs = ['Admin', 'Finance', 'Reviews', 'Schedule'];
+
             tabs.forEach(t => {
                 const btn = document.getElementById(`mTab${t}`);
                 const sec = document.getElementById(`sec${t}`);
@@ -420,82 +488,85 @@
         // ==========================================
         // دوال الحفظ للأقسام المختلفة
         // ==========================================
-        
+
         // 1. حفظ القسم الإداري
         async function saveAdminData() {
             const status = document.getElementById('detailStatus').value;
-            const nurse_id = document.getElementById('detailNurse').value;
+            const nurseValue = document.getElementById('detailNurse').value;
             const btn = document.getElementById('saveAdminBtn');
-            
+
             btn.innerHTML = 'جاري الحفظ...'; btn.disabled = true;
 
-            const updateData = { status: status };
-            if (nurse_id) updateData.nurse_id = nurse_id;
+            // نرسل nurse_id دائماً (حتى لو فارغ) حتى يمكن إلغاء تعيين الممرض فعلياً
+            const updateData = { status: status, nurse_id: nurseValue ? nurseValue : null };
 
             const { error } = await supabaseClient.from('bookings').update(updateData).eq('id', currentEditingBookingId);
-            
-            btn.innerHTML = `حفظ البيانات الإدارية <span class="material-symbols-outlined text-[18px]">save</span>`; 
+
+            btn.innerHTML = `حفظ البيانات الإدارية <span class="material-symbols-outlined text-[18px]">save</span>`;
             btn.disabled = false;
 
-            if (error) { 
+            if (error) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                tg.showAlert("حدث خطأ. تأكد من صلاحياتك."); 
-            } else { 
-                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); 
-                tg.showAlert("تم حفظ الحالة والممرض!"); 
+                tg.showAlert("حدث خطأ. تأكد من صلاحياتك.");
+            } else {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("تم حفظ الحالة والممرض!");
                 fetchBookings(currentStatus);
             }
         }
 
         // 2. حفظ الجدولة والموقع
         async function saveScheduleData() {
-            const scheduled_at = document.getElementById('detailScheduledAt').value;
-            const address = document.getElementById('detailAddress').value; 
+            const scheduledAtValue = document.getElementById('detailScheduledAt').value;
+            const addressValue = document.getElementById('detailAddress').value.trim();
             const btn = document.getElementById('saveScheduleBtn');
-            
+
             btn.innerHTML = 'جاري الحفظ...'; btn.disabled = true;
 
-            const updateData = {};
-            if (scheduled_at) updateData.scheduled_at = new Date(scheduled_at).toISOString();
-            if (address) updateData.notes = address; 
+            // نرسل null صراحة عند التفريغ، حتى يمكن مسح الموعد أو العنوان فعلياً
+            const updateData = {
+                scheduled_at: scheduledAtValue ? new Date(scheduledAtValue).toISOString() : null,
+                notes: addressValue ? addressValue : null
+            };
 
             const { error } = await supabaseClient.from('bookings').update(updateData).eq('id', currentEditingBookingId);
-            
-            btn.innerHTML = `حفظ الجدولة والموقع <span class="material-symbols-outlined text-[18px]">map</span>`; 
+
+            btn.innerHTML = `حفظ الجدولة والموقع <span class="material-symbols-outlined text-[18px]">map</span>`;
             btn.disabled = false;
 
-            if (error) { 
+            if (error) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                tg.showAlert("حدث خطأ في حفظ الجدولة."); 
-            } else { 
-                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); 
-                tg.showAlert("تم حفظ موعد الزيارة بنجاح!"); 
+                tg.showAlert("حدث خطأ في حفظ الجدولة.");
+            } else {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("تم حفظ موعد الزيارة بنجاح!");
             }
         }
 
         // 3. حفظ التقييمات
         async function saveReviewsData() {
-            const pRating = document.getElementById('detailPatientRating').value;
-            const nRating = document.getElementById('detailNurseRating').value;
+            const pRatingValue = document.getElementById('detailPatientRating').value;
+            const nRatingValue = document.getElementById('detailNurseRating').value;
             const btn = document.getElementById('saveReviewsBtn');
-            
+
             btn.innerHTML = 'جاري الحفظ...'; btn.disabled = true;
 
-            const updateData = {};
-            if (pRating) updateData.patient_rating = parseInt(pRating);
-            if (nRating) updateData.nurse_rating = parseInt(nRating);
+            const updateData = {
+                patient_rating: pRatingValue ? parseInt(pRatingValue) : null,
+                nurse_rating: nRatingValue ? parseInt(nRatingValue) : null
+            };
 
             const { error } = await supabaseClient.from('bookings').update(updateData).eq('id', currentEditingBookingId);
-            
-            btn.innerHTML = 'حفظ التقييمات'; 
+
+            btn.innerHTML = 'حفظ التقييمات';
             btn.disabled = false;
 
-            if (error) { 
+            if (error) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                tg.showAlert("حدث خطأ أثناء الحفظ."); 
-            } else { 
-                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); 
-                tg.showAlert("تم حفظ التقييمات بنجاح!"); 
+                tg.showAlert("حدث خطأ أثناء الحفظ.");
+            } else {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("تم حفظ التقييمات بنجاح!");
             }
         }
 
@@ -506,7 +577,7 @@
             const nurseSelect = document.getElementById('detailNurse');
             const { data, error } = await supabaseClient.from('nurses').select('id, full_name').eq('is_available', true).eq('is_frozen', false);
             if (!error && data) {
-                nurseSelect.innerHTML = '<option value="">-- لم يتم التعيين --</option>' + data.map(n => `<option value="${n.id}">${n.full_name}</option>`).join('');
+                nurseSelect.innerHTML = '<option value="">-- لم يتم التعيين --</option>' + data.map(n => `<option value="${n.id}">${escapeHtml(n.full_name)}</option>`).join('');
                 nursesLoaded = true;
             }
         }
@@ -515,28 +586,30 @@
             const { data, error } = await supabaseClient.from('services').select('*').eq('is_active', true);
             if (!error && data) {
                 allServices = data;
-                document.getElementById('serviceSelect').innerHTML = '<option value="">-- اختر خدمة --</option>' + 
-                    data.map(s => `<option value="${s.id}">${s.name} (${s.price} د.ك)</option>`).join('');
+                document.getElementById('serviceSelect').innerHTML = '<option value="">-- اختر خدمة --</option>' +
+                    data.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${parseFloat(s.price).toFixed(2)} ج.م)</option>`).join('');
             }
         }
 
         function addServiceToCart() {
             const select = document.getElementById('serviceSelect');
             if(!select.value) return;
-            const service = allServices.find(s => s.id === select.value);
-            
-            if(bookingCart.find(item => item.service_id === service.id)) {
+            // مقارنة نصية آمنة لتفادي مشاكل عدم تطابق النوع (رقم مقابل نص) بين قيمة القائمة ومعرف الخدمة
+            const service = allServices.find(s => String(s.id) === String(select.value));
+            if(!service) return;
+
+            if(bookingCart.find(item => String(item.service_id) === String(service.id))) {
                 tg.showAlert("الخدمة مضافة مسبقاً للسلة!"); return;
             }
 
             bookingCart.push({ service_id: service.id, service_name: service.name, qty: 1, price_at_time: service.price });
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-            renderCart(); 
-            select.value = ''; 
+            renderCart();
+            select.value = '';
         }
 
         function removeService(serviceId) {
-            bookingCart = bookingCart.filter(item => item.service_id !== serviceId);
+            bookingCart = bookingCart.filter(item => String(item.service_id) !== String(serviceId));
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             renderCart();
         }
@@ -546,16 +619,17 @@
             const totalDisplay = document.getElementById('cartTotalDisplay');
             if(bookingCart.length === 0) {
                 list.innerHTML = '<p class="text-center text-on-surface-variant text-[12px] mt-8">لم يتم إضافة خدمات بعد</p>';
-                totalDisplay.innerText = '0'; return;
+                totalDisplay.innerText = '0.00'; return;
             }
 
             let total = 0;
             list.innerHTML = bookingCart.map(item => {
-                total += parseFloat(item.price_at_time);
+                const price = parseFloat(item.price_at_time) || 0;
+                total += price;
                 return `
                 <div class="flex justify-between items-center bg-surface p-3 rounded-lg mb-2 shadow-sm border border-surface-container">
-                    <div><p class="font-bold text-[14px]">${item.service_name}</p><p class="text-[12px] text-on-surface-variant">${item.price_at_time} د.ك</p></div>
-                    <button onclick="removeService('${item.service_id}')" class="text-error w-8 h-8 flex items-center justify-center bg-error-container rounded-full active:scale-90"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                    <div><p class="font-bold text-[14px]">${escapeHtml(item.service_name)}</p><p class="text-[12px] text-on-surface-variant">${price.toFixed(2)} ج.م</p></div>
+                    <button type="button" onclick="removeService('${escapeHtml(item.service_id)}')" class="text-error w-8 h-8 flex items-center justify-center bg-error-container rounded-full active:scale-90" aria-label="إزالة الخدمة"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                 </div>`;
             }).join('');
             totalDisplay.innerText = total.toFixed(2);
@@ -566,7 +640,7 @@
             const btn = document.getElementById('saveFinBtn');
             btn.innerHTML = 'جاري الحفظ...'; btn.disabled = true;
 
-            let totalAmount = bookingCart.reduce((sum, item) => sum + parseFloat(item.price_at_time), 0);
+            let totalAmount = bookingCart.reduce((sum, item) => sum + (parseFloat(item.price_at_time) || 0), 0);
             const transactionType = document.getElementById('transactionType').value;
 
             try {
@@ -577,7 +651,7 @@
                     p_transaction_type: transactionType,
                     p_log_date: new Date().toISOString()
                 });
-                
+
                 if (error) throw error;
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 tg.showAlert("تم حفظ الخدمات وتحديث القيد المالي بنجاح!");
@@ -593,14 +667,43 @@
         }
 
         // ==========================================
+        // البحث عن مريض
+        // ==========================================
+        function clearSearch() {
+            clearTimeout(searchDebounceTimer);
+            const input = document.getElementById('patientSearchInput');
+            input.value = '';
+            currentSearchTerm = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            fetchBookings(currentStatus);
+        }
+
+        document.getElementById('patientSearchInput').addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('clearSearchBtn').classList.toggle('hidden', !value);
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                currentSearchTerm = value.trim();
+                fetchBookings(currentStatus);
+            }, 350);
+        });
+
+        // تفويض حدث الضغط على بطاقات الحجوزات لفتح تفاصيل الحجز (بدلاً من onclick مضمّن غير آمن)
+        document.getElementById('bookingsList').addEventListener('click', (e) => {
+            const card = e.target.closest('.booking-card');
+            if(!card) return;
+            fetchAndOpenDetails(card.dataset.id, card.dataset.name, card.dataset.phone, card.dataset.status);
+        });
+
+        // ==========================================
         // الإعداد الرئيسي وجلب القوائم
         // ==========================================
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-                tabs.forEach(t => t.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200');
-                tab.className = 'tab-btn active px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200';
+                tabs.forEach(t => t.className = 'tab-btn status-tab px-5 py-2.5 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200 flex items-center gap-1.5');
+                tab.className = 'tab-btn status-tab active px-5 py-2.5 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container whitespace-nowrap transition-all duration-200 flex items-center gap-1.5';
                 currentStatus = tab.dataset.status;
                 fetchBookings(currentStatus);
             });
@@ -609,14 +712,14 @@
         async function initApp() {
             try {
                 if (!tg.initData) throw new Error("لم يتم العثور على بيانات تليجرام. افتح من الزر المخصص.");
-                
+
                 const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ initData: tg.initData })
                 });
-                
+
                 if (!authResponse.ok) throw new Error(`SERVER_ERROR: ${authResponse.status}`);
-                
+
                 const authData = await authResponse.json();
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                     global: { headers: { Authorization: `Bearer ${authData.token}` } }
@@ -625,8 +728,8 @@
                 fetchBookings(currentStatus);
                 subscribeToRealtime();
 
-            } catch (error) { 
-                document.getElementById('bookingsList').innerHTML = `<div class="text-left p-6 text-error font-bold bg-error-container rounded-2xl"><span class="text-[12px]">Error:</span><br>${error.message}</div>`;
+            } catch (error) {
+                document.getElementById('bookingsList').innerHTML = `<div class="text-left p-6 text-error font-bold bg-error-container rounded-2xl"><span class="text-[12px]">Error:</span><br>${escapeHtml(error.message)}</div>`;
             }
         }
 
@@ -643,33 +746,59 @@
             const list = document.getElementById('bookingsList');
             list.innerHTML = '<div class="text-center p-8 text-on-surface-variant animate-pulse">جاري التحميل...</div>';
 
-            const { data, error } = await supabaseClient.from('bookings').select('id, patient_name, patient_phone, status, created_at').eq('status', status).order('created_at', { ascending: false });
+            let query = supabaseClient.from('bookings').select('id, patient_name, patient_phone, status, created_at').eq('status', status).order('created_at', { ascending: false });
+
+            if (currentSearchTerm) {
+                // إزالة رموز قد تكسر بناء جملة الفلترة في Supabase (%, _, , أو أقواس)
+                const safeTerm = currentSearchTerm.replace(/[%_,()]/g, '');
+                if (safeTerm) {
+                    query = query.or(`patient_name.ilike.%${safeTerm}%,patient_phone.ilike.%${safeTerm}%`);
+                }
+            }
+
+            const { data, error } = await query;
 
             if (error) { list.innerHTML = `<div class="text-center p-4 text-error">حدث خطأ في التحميل</div>`; return; }
-            if (data.length === 0) { list.innerHTML = `<div class="text-center p-8 text-on-surface-variant">لا توجد حجوزات</div>`; return; }
 
-            list.innerHTML = data.map(booking => {
+            if (data.length === 0) {
+                const emptyMsg = currentSearchTerm ? 'لا توجد نتائج مطابقة لبحثك' : 'لا توجد حجوزات';
+                const emptyIcon = currentSearchTerm ? 'search_off' : 'inbox';
+                list.innerHTML = `<div class="text-center p-12 text-on-surface-variant flex flex-col items-center gap-2"><span class="material-symbols-outlined text-[40px] text-outline-variant">${emptyIcon}</span>${emptyMsg}</div>`;
+                return;
+            }
+
+            list.innerHTML = data.map((booking, idx) => {
                 let badgeClass = 'bg-tertiary-fixed text-on-tertiary-fixed';
+                let accentClass = 'bg-tertiary-container';
                 let badgeText = 'قيد الانتظار'; let icon = 'schedule';
-                if(booking.status === 'in_progress') { badgeClass = 'bg-primary-fixed text-on-primary-fixed'; badgeText = 'جاري التنفيذ'; icon = 'vital_signs'; }
-                else if(booking.status === 'completed') { badgeClass = 'bg-secondary-fixed text-on-secondary-fixed'; badgeText = 'مكتمل'; icon = 'check_circle'; }
-                else if(booking.status === 'cancelled') { badgeClass = 'bg-error-container text-on-error-container'; badgeText = 'ملغي'; icon = 'cancel'; }
+                if(booking.status === 'in_progress') { badgeClass = 'bg-primary-fixed text-on-primary-fixed'; accentClass = 'bg-primary'; badgeText = 'جاري التنفيذ'; icon = 'vital_signs'; }
+                else if(booking.status === 'completed') { badgeClass = 'bg-success-container text-on-success-container'; accentClass = 'bg-success'; badgeText = 'مكتمل'; icon = 'check_circle'; }
+                else if(booking.status === 'cancelled') { badgeClass = 'bg-error-container text-on-error-container'; accentClass = 'bg-error'; badgeText = 'ملغي'; icon = 'cancel'; }
 
                 const diffHours = Math.floor((new Date() - new Date(booking.created_at)) / (1000 * 60 * 60));
                 const timeStr = diffHours < 1 ? 'منذ أقل من ساعة' : `منذ ${diffHours} ساعة`;
 
                 const safeName = escapeHtml(booking.patient_name);
                 const safePhone = escapeHtml(booking.patient_phone);
+                const initial = escapeHtml((booking.patient_name || '؟').trim().charAt(0));
+                const badgeIcon = booking.status === 'in_progress'
+                    ? '<span class="w-1.5 h-1.5 rounded-full bg-current pulse-dot"></span>'
+                    : `<span class="material-symbols-outlined text-[14px]">${icon}</span>`;
 
                 return `
-                <div class="bg-surface-container-lowest rounded-2xl p-section-padding shadow-[0_4px_20px_rgba(15,23,42,0.05)] flex flex-col gap-stack-sm relative overflow-hidden group" onclick="fetchAndOpenDetails('${booking.id}', '${safeName}', '${safePhone}', '${booking.status}')">
-                    <div class="absolute top-0 right-0 w-1 h-full ${booking.status === 'pending' ? 'bg-tertiary-container' : 'bg-primary'} rounded-r-2xl"></div>
-                    <div class="flex justify-between items-start cursor-pointer">
-                        <div class="pr-2">
-                            <h3 class="font-bold text-[18px] text-on-surface mb-1">${safeName}</h3>
-                            <p class="font-body-sm text-on-surface-variant flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-outline">call</span><span dir="ltr">${safePhone}</span></p>
+                <div class="booking-card bg-surface-container-lowest rounded-2xl p-section-padding shadow-[0_4px_20px_rgba(15,23,42,0.05)] flex flex-col gap-stack-sm relative overflow-hidden cursor-pointer active:scale-[0.99] transition-transform" style="animation-delay:${Math.min(idx * 40, 320)}ms" data-id="${escapeHtml(booking.id)}" data-name="${safeName}" data-phone="${safePhone}" data-status="${escapeHtml(booking.status)}">
+                    <div class="absolute top-0 right-0 w-1 h-full ${accentClass} rounded-r-2xl"></div>
+                    <div class="flex justify-between items-center gap-3">
+                        <div class="w-11 h-11 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-bold text-[16px] shrink-0">${initial}</div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-bold text-[17px] text-on-surface mb-0.5 truncate">${safeName}</h3>
+                            <p class="font-body-sm text-on-surface-variant flex items-center gap-1.5 text-[13px]"><span class="material-symbols-outlined text-[15px] text-outline">call</span><span dir="ltr">${safePhone}</span></p>
                         </div>
-                        <span class="${badgeClass} px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">${icon}</span>${badgeText}</span>
+                        <span class="material-symbols-outlined text-outline-variant text-[22px]">chevron_left</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2.5 border-t border-surface-container">
+                        <p class="text-[11px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">history</span>${timeStr}</p>
+                        <span class="${badgeClass} px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1.5">${badgeIcon}${badgeText}</span>
                     </div>
                 </div>`;
             }).join('');
