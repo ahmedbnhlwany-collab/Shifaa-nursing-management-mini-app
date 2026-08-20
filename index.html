@@ -305,10 +305,7 @@
         // 2. إعدادات Supabase
         const SUPABASE_URL = 'https://zvxzdihonmlglrufrjjl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHpkaWhvbm1sZ2xydWZyampsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMjA3MjEsImV4cCI6MjA5ODU5NjcyMX0.cZi4F0K28AiT2aXdr4MUCLbub-zUPUXP1IlPntcxEv8';
-        
-        // تذكير هام: يجب تفعيل RLS (Row Level Security) في لوحة تحكم Supabase لحماية الجداول (bookings, services, nurses, booking_services).
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+        let supabaseClient;
         let currentStatus = 'pending';
 
         // ==========================================
@@ -369,31 +366,36 @@
             document.getElementById('detailPatientPhone').innerText = patientPhone;
             document.getElementById('detailStatus').value = status;
 
+            // فتح النافذة فوراً على التبويب الإداري
             switchModalTab('admin');
             openGenericModal('detailsModal', 'detailsSheet');
 
+            // تحميل قائمة الممرضين
             if(!nursesLoaded) await loadAvailableNurses();
 
+            // جلب بيانات الحجز الإضافية من القاعدة
             const { data, error } = await supabaseClient
                 .from('bookings')
-                .select('nurse_id, scheduled_at, patient_rating, nurse_rating, address')
+                .select('nurse_id, scheduled_at, patient_rating, nurse_rating, notes')
                 .eq('id', bookingId).single();
 
             if (data && !error) {
                 if (data.nurse_id) document.getElementById('detailNurse').value = data.nurse_id;
                 
                 if (data.scheduled_at) {
+                    // معالجة التاريخ ليتوافق مع حقل datetime-local
                     const d = new Date(data.scheduled_at);
                     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
                     document.getElementById('detailScheduledAt').value = d.toISOString().slice(0,16);
                 }
                 
-                if (data.address) document.getElementById('detailAddress').value = data.address;
+                if (data.notes) document.getElementById('detailAddress').value = data.notes;
                 if (data.patient_rating) document.getElementById('detailPatientRating').value = data.patient_rating;
                 if (data.nurse_rating) document.getElementById('detailNurseRating').value = data.nurse_rating;
             }
         }
 
+        // التبديل بين التبويبات الأربعة
         function switchModalTab(tabName) {
             if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             const tabs = ['Admin', 'Schedule', 'Finance', 'Reviews'];
@@ -441,7 +443,7 @@
             } else { 
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); 
                 tg.showAlert("تم حفظ الحالة والممرض!"); 
-                fetchBookings(currentStatus); // تحديث القائمة الخارجية إذا كانت موجودة
+                fetchBookings(currentStatus);
             }
         }
 
@@ -455,8 +457,7 @@
 
             const updateData = {};
             if (scheduled_at) updateData.scheduled_at = new Date(scheduled_at).toISOString();
-            // تعديل: حفظ العنوان في حقل address بدلاً من notes
-            if (address) updateData.address = address; 
+            if (address) updateData.notes = address; 
 
             const { error } = await supabaseClient.from('bookings').update(updateData).eq('id', currentEditingBookingId);
             
@@ -468,7 +469,7 @@
                 tg.showAlert("حدث خطأ في حفظ الجدولة."); 
             } else { 
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); 
-                tg.showAlert("تم حفظ موعد الزيارة والعنوان بنجاح!"); 
+                tg.showAlert("تم حفظ موعد الزيارة بنجاح!"); 
             }
         }
 
@@ -499,7 +500,7 @@
         }
 
         // ==========================================
-        // إدارة السلة (المالية والخدمات)
+        // إدارة السلة (المالية)
         // ==========================================
         async function loadAvailableNurses() {
             const nurseSelect = document.getElementById('detailNurse');
@@ -543,104 +544,163 @@
         function renderCart() {
             const list = document.getElementById('cartItemsList');
             const totalDisplay = document.getElementById('cartTotalDisplay');
-            
             if(bookingCart.length === 0) {
                 list.innerHTML = '<p class="text-center text-on-surface-variant text-[12px] mt-8">لم يتم إضافة خدمات بعد</p>';
-                totalDisplay.innerText = '0'; 
-                return;
+                totalDisplay.innerText = '0'; return;
             }
 
             let total = 0;
             list.innerHTML = bookingCart.map(item => {
                 total += parseFloat(item.price_at_time);
                 return `
-                <div class="flex justify-between items-center bg-surface p-2 rounded-lg mb-2 border border-surface-container">
-                    <span class="text-[14px] font-bold">${item.service_name}</span>
-                    <div class="flex items-center gap-4">
-                        <span class="text-primary font-bold">${item.price_at_time} د.ك</span>
-                        <button onclick="removeService('${item.service_id}')" class="text-error-container hover:text-on-error-container">
-                            <span class="material-symbols-outlined text-[20px]">delete</span>
-                        </button>
-                    </div>
-                </div>
-                `;
+                <div class="flex justify-between items-center bg-surface p-3 rounded-lg mb-2 shadow-sm border border-surface-container">
+                    <div><p class="font-bold text-[14px]">${item.service_name}</p><p class="text-[12px] text-on-surface-variant">${item.price_at_time} د.ك</p></div>
+                    <button onclick="removeService('${item.service_id}')" class="text-error w-8 h-8 flex items-center justify-center bg-error-container rounded-full active:scale-90"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                </div>`;
             }).join('');
-            
             totalDisplay.innerText = total.toFixed(2);
         }
 
-        // التعديل الرئيسي 4: دالة حفظ الفاتورة والخدمات (الجدول الوسيط)
         async function saveFinancials() {
-            if(bookingCart.length === 0) { 
-                tg.showAlert("يرجى إضافة خدمة واحدة على الأقل."); 
-                return; 
-            }
-            
+            if(bookingCart.length === 0) { tg.showAlert("يرجى إضافة خدمة واحدة على الأقل."); return; }
             const btn = document.getElementById('saveFinBtn');
-            btn.innerHTML = 'جاري الحفظ...'; 
-            btn.disabled = true;
+            btn.innerHTML = 'جاري الحفظ...'; btn.disabled = true;
 
-            // حساب الإجمالي
             let totalAmount = bookingCart.reduce((sum, item) => sum + parseFloat(item.price_at_time), 0);
             const transactionType = document.getElementById('transactionType').value;
 
             try {
-                // 1. تحديث جدول الحجوزات بإجمالي المبلغ ونوع المعاملة
-                const updateData = {
-                    total_amount: totalAmount,
-                    transaction_type: transactionType
-                };
-
-                const { error: bookingError } = await supabaseClient
-                    .from('bookings')
-                    .update(updateData)
-                    .eq('id', currentEditingBookingId);
+                const { error } = await supabaseClient.rpc('update_booking_financials', {
+                    p_booking_id: currentEditingBookingId,
+                    p_cart_data: bookingCart,
+                    p_total_amount: totalAmount,
+                    p_transaction_type: transactionType,
+                    p_log_date: new Date().toISOString()
+                });
                 
-                if (bookingError) throw bookingError;
-
-                // 2. تحديث جدول الخدمات الوسيط (booking_services)
-                // أولاً: حذف الخدمات القديمة المرتبطة بهذا الحجز (تجنباً للتكرار عند التعديل)
-                const { error: deleteError } = await supabaseClient
-                    .from('booking_services')
-                    .delete()
-                    .eq('booking_id', currentEditingBookingId);
-                
-                if (deleteError) throw deleteError;
-
-                // ثانياً: إدراج الخدمات الجديدة من السلة
-                const servicesToInsert = bookingCart.map(item => ({
-                    booking_id: currentEditingBookingId,
-                    service_id: item.service_id,
-                    price_at_time: item.price_at_time,
-                    quantity: item.qty || 1
-                }));
-
-                const { error: insertError } = await supabaseClient
-                    .from('booking_services')
-                    .insert(servicesToInsert);
-
-                if (insertError) throw insertError;
-
-                // إذا نجحت العمليات
-                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); 
-                tg.showAlert("تم حفظ الفاتورة والخدمات بنجاح!"); 
-                
-            } catch (error) {
+                if (error) throw error;
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("تم حفظ الخدمات وتحديث القيد المالي بنجاح!");
+                closeDetailsModal();
+                fetchBookings(currentStatus);
+            } catch (err) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                tg.showAlert("حدث خطأ أثناء حفظ الفاتورة."); 
-                console.error("Error saving financials:", error);
+                tg.showAlert("حدث خطأ مالي. تأكد من إعداد الدالة.");
+                console.error(err);
             } finally {
-                btn.innerHTML = 'تأكيد وحفظ الفاتورة'; 
-                btn.disabled = false;
+                btn.innerHTML = 'تأكيد وحفظ الفاتورة'; btn.disabled = false;
             }
         }
 
-        // دالة وهمية لتعمل الأزرار (يجب استبدالها لاحقاً بمنطق جلب البيانات الفعلي)
-        function fetchBookings(status) {
-            console.log("Fetching bookings for status:", status);
-            // ضع هنا كود استدعاء الحجوزات من Supabase وعرضها في `bookingsList`
+        // ==========================================
+        // الإعداد الرئيسي وجلب القوائم
+        // ==========================================
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+                tabs.forEach(t => t.className = 'tab-btn px-5 py-2 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200');
+                tab.className = 'tab-btn active px-5 py-2 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container shadow-sm whitespace-nowrap transition-all duration-200';
+                currentStatus = tab.dataset.status;
+                fetchBookings(currentStatus);
+            });
+        });
+
+        async function initApp() {
+            try {
+                if (!tg.initData) throw new Error("لم يتم العثور على بيانات تليجرام. افتح من الزر المخصص.");
+                
+                const authResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: tg.initData })
+                });
+                
+                if (!authResponse.ok) throw new Error(`SERVER_ERROR: ${authResponse.status}`);
+                
+                const authData = await authResponse.json();
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    global: { headers: { Authorization: `Bearer ${authData.token}` } }
+                });
+
+                fetchBookings(currentStatus);
+                subscribeToRealtime();
+
+            } catch (error) { 
+                document.getElementById('bookingsList').innerHTML = `<div class="text-left p-6 text-error font-bold bg-error-container rounded-2xl"><span class="text-[12px]">Error:</span><br>${error.message}</div>`;
+            }
         }
 
+        function subscribeToRealtime() {
+            if(!supabaseClient) return;
+            supabaseClient.channel('public:bookings')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, payload => {
+                    fetchBookings(currentStatus);
+                }).subscribe();
+        }
+
+        async function fetchBookings(status) {
+            if (!supabaseClient) return;
+            const list = document.getElementById('bookingsList');
+            list.innerHTML = '<div class="text-center p-8 text-on-surface-variant animate-pulse">جاري التحميل...</div>';
+
+            const { data, error } = await supabaseClient.from('bookings').select('id, patient_name, patient_phone, status, created_at').eq('status', status).order('created_at', { ascending: false });
+
+            if (error) { list.innerHTML = `<div class="text-center p-4 text-error">حدث خطأ في التحميل</div>`; return; }
+            if (data.length === 0) { list.innerHTML = `<div class="text-center p-8 text-on-surface-variant">لا توجد حجوزات</div>`; return; }
+
+            list.innerHTML = data.map(booking => {
+                let badgeClass = 'bg-tertiary-fixed text-on-tertiary-fixed';
+                let badgeText = 'قيد الانتظار'; let icon = 'schedule';
+                if(booking.status === 'in_progress') { badgeClass = 'bg-primary-fixed text-on-primary-fixed'; badgeText = 'جاري التنفيذ'; icon = 'vital_signs'; }
+                else if(booking.status === 'completed') { badgeClass = 'bg-secondary-fixed text-on-secondary-fixed'; badgeText = 'مكتمل'; icon = 'check_circle'; }
+                else if(booking.status === 'cancelled') { badgeClass = 'bg-error-container text-on-error-container'; badgeText = 'ملغي'; icon = 'cancel'; }
+
+                const diffHours = Math.floor((new Date() - new Date(booking.created_at)) / (1000 * 60 * 60));
+                const timeStr = diffHours < 1 ? 'منذ أقل من ساعة' : `منذ ${diffHours} ساعة`;
+
+                const safeName = escapeHtml(booking.patient_name);
+                const safePhone = escapeHtml(booking.patient_phone);
+
+                return `
+                <div class="bg-surface-container-lowest rounded-2xl p-section-padding shadow-[0_4px_20px_rgba(15,23,42,0.05)] flex flex-col gap-stack-sm relative overflow-hidden group" onclick="fetchAndOpenDetails('${booking.id}', '${safeName}', '${safePhone}', '${booking.status}')">
+                    <div class="absolute top-0 right-0 w-1 h-full ${booking.status === 'pending' ? 'bg-tertiary-container' : 'bg-primary'} rounded-r-2xl"></div>
+                    <div class="flex justify-between items-start cursor-pointer">
+                        <div class="pr-2">
+                            <h3 class="font-bold text-[18px] text-on-surface mb-1">${safeName}</h3>
+                            <p class="font-body-sm text-on-surface-variant flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-outline">call</span><span dir="ltr">${safePhone}</span></p>
+                        </div>
+                        <span class="${badgeClass} px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">${icon}</span>${badgeText}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ==========================================
+        // طلب الطوارئ (الإضافة السريعة)
+        // ==========================================
+        document.getElementById('emergencyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('patientName').value.trim();
+            const phone = document.getElementById('patientPhone').value.trim();
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = 'جاري التسجيل...'; btn.disabled = true;
+
+            try {
+                const { error } = await supabaseClient.rpc('create_emergency_booking', { p_name: name, p_phone: phone, p_source: 'telegram_miniapp' });
+                if (error) throw error;
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                closeGenericModal('emergencyModal', 'modalSheet');
+                document.getElementById('emergencyForm').reset();
+            } catch (err) {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                tg.showAlert("حدث خطأ أثناء التسجيل.");
+            } finally {
+                btn.innerHTML = `تأكيد طلب الطوارئ <span class="material-symbols-outlined text-[18px]">arrow_forward</span>`; btn.disabled = false;
+            }
+        });
+
+        // تشغيل النظام
+        initApp();
     </script>
 </body>
 </html>
