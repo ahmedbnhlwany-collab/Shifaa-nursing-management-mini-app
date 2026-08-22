@@ -4,20 +4,14 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
     <title>شفاء - لوحة التحكم</title>
-    <!-- Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <!-- Google Fonts: Cairo & Tajawal -->
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@500&display=swap" rel="stylesheet"/>
-    <!-- Material Symbols -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Tailwind Config -->
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -43,15 +37,11 @@
                         "outline-variant": "#c3c6d7",
                         "error-container": "#ffdad6",
                         "on-error-container": "#93000a",
-                        "error": "#ba1a1a",
                         "tertiary-container": "#bc4800",
                         "tertiary-fixed": "#ffdbcd",
                         "on-tertiary-fixed": "#360f00",
                         "secondary": "#0053db",
                         "on-secondary": "#ffffff",
-                        "success-container": "#c6f0d2",
-                        "on-success-container": "#0b3b1c",
-                        "success": "#1e8e3e",
                     },
                     borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
                     spacing: { "stack-md": "1rem", "section-padding": "1.5rem", "container-margin": "1.25rem", "stack-sm": "0.5rem" },
@@ -67,36 +57,29 @@
         body { -webkit-tap-highlight-color: transparent; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        /* Modal Transitions */
         .modal-enter { opacity: 0; pointer-events: none; }
         .modal-enter-active { opacity: 1; pointer-events: auto; transition: opacity 0.3s ease-out; }
         .sheet-enter { transform: translateY(100%); }
         .sheet-enter-active { transform: translateY(0); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        /* Tab Button Styling for 4 items */
         .modal-tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0.6rem 0.25rem; font-size: 11px; font-weight: 700; border-radius: 0.7rem; text-align: center; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; }
         .modal-tab-btn .material-symbols-outlined { font-size: 19px; transition: all 0.25s; }
         .modal-tab-btn.active { background-color: #2563eb; color: #ffffff; box-shadow: 0 6px 14px -4px rgba(37, 99, 235, 0.45); transform: translateY(-1px); }
         .modal-tab-btn.inactive { color: #434655; background-color: transparent; }
         .modal-tab-btn.inactive:active { background-color: #eceef0; }
-        /* Status pill tabs (top level) */
         .status-tab.active { box-shadow: 0 6px 14px -4px rgba(0, 74, 198, 0.35); }
-        /* Booking card entrance */
         @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         .booking-card { animation: fadeSlideIn 0.35s ease-out backwards; }
-        /* Live pulse dot for in-progress visits */
         @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(0.75); } }
         .pulse-dot { animation: pulseDot 1.6s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
             .booking-card, .pulse-dot { animation: none; }
         }
-        /* Reusable custom chevron for native selects */
         .select-chevron {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23737686' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: left 0.85rem center;
             background-size: 18px;
         }
-        /* Focus visibility for keyboard users */
         button:focus-visible, input:focus-visible, select:focus-visible {
             outline: 2px solid #004ac6;
             outline-offset: 2px;
@@ -124,9 +107,8 @@
         </div>
     </header>
 
-    <!-- Main Content Canvas -->
+    <!-- Main Content -->
     <main class="pt-[80px] pb-[100px] px-container-margin md:max-w-[600px] md:mx-auto">
-        <!-- Tabs -->
         <div class="flex overflow-x-auto hide-scrollbar gap-stack-sm py-stack-sm mb-stack-md" id="statusTabs">
             <button class="tab-btn status-tab active px-5 py-2.5 rounded-full font-label-md text-label-md bg-primary-container text-on-primary-container whitespace-nowrap transition-all duration-200 flex items-center gap-1.5" data-status="pending"><span class="material-symbols-outlined text-[16px]">schedule</span>جديد</button>
             <button class="tab-btn status-tab px-5 py-2.5 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200 flex items-center gap-1.5" data-status="in_progress"><span class="material-symbols-outlined text-[16px]">vital_signs</span>جاري</button>
@@ -134,21 +116,18 @@
             <button class="tab-btn status-tab px-5 py-2.5 rounded-full font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-highest whitespace-nowrap transition-all duration-200 flex items-center gap-1.5" data-status="cancelled"><span class="material-symbols-outlined text-[16px]">cancel</span>ملغي</button>
         </div>
 
-        <!-- Booking Cards List -->
         <div id="bookingsList" class="flex flex-col gap-stack-md">
             <div class="text-center p-8 text-on-surface-variant">جاري الاتصال بالنظام...</div>
         </div>
     </main>
 
-    <!-- Floating Action Button -->
+    <!-- FAB -->
     <button type="button" class="fixed bottom-[40px] left-container-margin w-14 h-14 bg-gradient-to-br from-primary to-primary-shade text-on-primary rounded-full shadow-[0_10px_24px_-6px_rgba(0,74,198,0.55)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-30" onclick="openGenericModal('emergencyModal', 'modalSheet')" aria-label="حجز جديد سريع">
         <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-error border-2 border-surface"></span>
         <span class="material-symbols-outlined text-[28px]">add</span>
     </button>
 
-    <!-- ========================================== -->
-    <!-- نافذة تفاصيل الحجز الشاملة (Details Modal) -->
-    <!-- ========================================== -->
+    <!-- Details Modal -->
     <div class="fixed inset-0 z-50 modal-enter hidden" id="detailsModal">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDetailsModal()"></div>
         <div class="absolute bottom-0 w-full h-[90vh] bg-surface-container-lowest rounded-t-2xl shadow-2xl sheet-enter flex flex-col" id="detailsSheet">
@@ -165,7 +144,6 @@
                 </button>
             </div>
 
-            <!-- معلومات المريض والتبويبات الأربعة -->
             <div class="p-5 bg-gradient-to-b from-surface-container-low to-surface flex flex-col items-center border-b border-surface-container">
                 <div id="detailPatientAvatar" class="w-14 h-14 rounded-full bg-primary text-on-primary flex items-center justify-center text-[20px] font-bold shadow-md mb-2">-</div>
                 <h3 id="detailPatientName" class="font-bold text-[18px] text-on-surface">---</h3>
@@ -173,7 +151,6 @@
                     <span class="material-symbols-outlined text-[14px]">call</span><span id="detailPatientPhone">---</span>
                 </p>
 
-                <!-- أزرار التبويبات -->
                 <div class="flex w-full mt-4 bg-surface-container-lowest rounded-2xl overflow-x-auto hide-scrollbar border border-surface-container p-1.5 gap-1 shadow-sm">
                     <button type="button" onclick="switchModalTab('admin')" id="mTabAdmin" class="modal-tab-btn active"><span class="material-symbols-outlined">admin_panel_settings</span>إداري</button>
                     <button type="button" onclick="switchModalTab('finance')" id="mTabFinance" class="modal-tab-btn inactive"><span class="material-symbols-outlined">payments</span>المالية</button>
@@ -182,7 +159,7 @@
                 </div>
             </div>
 
-            <!-- 1. التبويب الإداري -->
+            <!-- Tab: Admin -->
             <div id="secAdmin" class="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col">
                 <div>
                     <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">حالة الحجز</label>
@@ -212,7 +189,7 @@
                 </div>
             </div>
 
-            <!-- 2. التبويب المالي -->
+            <!-- Tab: Finance -->
             <div id="secFinance" class="flex-1 overflow-y-auto p-6 space-y-4 hidden flex-col">
                 <div>
                     <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">إضافة خدمة</label>
@@ -235,14 +212,28 @@
                     <span class="text-on-primary-fixed font-bold text-[20px]"><span id="cartTotalDisplay">0.00</span> ج.م</span>
                 </div>
 
-                <div class="mt-auto">
-                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">نوع المعاملة</label>
-                    <div class="relative mb-4">
-                        <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">account_balance_wallet</span>
-                        <select id="transactionType" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-10 py-3 outline-none focus:border-primary appearance-none select-chevron transition-colors">
-                            <option value="collected_by_nurse">تحصيل بواسطة الممرض</option>
-                            <option value="received_by_company">تحصيل مباشر للشركة</option>
-                        </select>
+                <div class="mt-auto space-y-3">
+                    <div>
+                        <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">طريقة الدفع</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">payments</span>
+                            <select id="paymentMethod" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-10 py-3 outline-none focus:border-primary appearance-none select-chevron transition-colors">
+                                <option value="cash">نقدي</option>
+                                <option value="vodafone_cash">فودافون كاش</option>
+                                <option value="bank_transfer">تحويل بنكي</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">نوع المعاملة</label>
+                        <div class="relative mb-4">
+                            <span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant text-[20px]">account_balance_wallet</span>
+                            <select id="transactionType" class="w-full bg-surface-container border border-outline-variant rounded-xl pr-12 pl-10 py-3 outline-none focus:border-primary appearance-none select-chevron transition-colors">
+                                <option value="collected_by_nurse">تحصيل بواسطة الممرض</option>
+                                <option value="received_by_company">تحصيل مباشر للشركة</option>
+                            </select>
+                        </div>
                     </div>
                     <button type="button" id="saveFinBtn" onclick="saveFinancials()" class="w-full bg-gradient-to-br from-tertiary-container to-[#8a3600] text-on-tertiary-container rounded-full py-4 font-bold shadow-[0_8px_20px_-6px_rgba(188,72,0,0.5)] active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
                         تأكيد وحفظ الفاتورة <span class="material-symbols-outlined text-[18px]">receipt_long</span>
@@ -250,7 +241,7 @@
                 </div>
             </div>
 
-            <!-- 3. تبويب التقييمات والملاحظات -->
+            <!-- 3. Tab: Reviews -->
             <div id="secReviews" class="flex-1 overflow-y-auto p-6 space-y-6 hidden flex-col">
                 <div>
                     <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">تقييم المريض للخدمة</label>
@@ -281,8 +272,8 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">ملاحظات إدارية (داخلية)</label>
-                    <textarea id="detailAdminNotes" rows="3" class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3 outline-none focus:border-primary resize-none placeholder:text-outline" placeholder="اكتب أي ملاحظات أو شكاوى حول الزيارة للرجوع إليها لاحقاً..."></textarea>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">ملاحظات إدارية (للمنسق)</label>
+                    <textarea id="detailAdminNotes" rows="3" class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3 outline-none focus:border-primary resize-none placeholder:text-outline" placeholder="اكتب الملاحظات الداخلية هنا..."></textarea>
                 </div>
                 <div class="mt-auto pt-4 border-t border-surface-container">
                     <button type="button" id="saveReviewsBtn" onclick="saveReviewsData()" class="w-full bg-gradient-to-br from-on-surface-variant to-on-surface text-surface rounded-full py-4 font-bold shadow-sm active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
@@ -291,7 +282,7 @@
                 </div>
             </div>
 
-            <!-- 4. تبويب الجدولة والموقع -->
+            <!-- 4. Tab: Schedule -->
             <div id="secSchedule" class="flex-1 overflow-y-auto p-6 space-y-6 hidden flex-col">
                 <div>
                     <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">موعد الزيارة المحدد</label>
@@ -301,11 +292,15 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">العنوان أو رابط الموقع (Location)</label>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">العنوان أو رابط الموقع</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute right-4 top-3.5 text-secondary text-[20px]">location_on</span>
-                        <input type="text" id="detailAddress" class="w-full bg-surface-container border border-outline-variant rounded-xl px-12 py-3.5 outline-none focus:border-primary placeholder:text-outline transition-colors" placeholder="أدخل العنوان أو الصق رابط خرائط جوجل..." />
+                        <input type="text" id="detailAddress" class="w-full bg-surface-container border border-outline-variant rounded-xl px-12 py-3.5 outline-none focus:border-primary placeholder:text-outline transition-colors" placeholder="أدخل العنوان..." />
                     </div>
+                </div>
+                <div>
+                    <label class="block text-[14px] font-bold mb-2 text-on-surface-variant">ملاحظات طبية للمريض</label>
+                    <textarea id="detailMedicalNotes" rows="3" class="w-full bg-surface-container border border-outline-variant rounded-xl px-4 py-3 outline-none focus:border-primary resize-none placeholder:text-outline" placeholder="أدخل التشخيص أو المتطلبات الطبية..."></textarea>
                 </div>
                 <div class="mt-auto pt-4 border-t border-surface-container">
                     <button type="button" id="saveScheduleBtn" onclick="saveScheduleData()" class="w-full bg-gradient-to-br from-secondary to-primary-shade text-on-secondary rounded-full py-4 font-bold shadow-[0_8px_20px_-6px_rgba(0,83,219,0.5)] active:scale-[0.98] transition-transform flex justify-center items-center gap-2">
@@ -317,7 +312,7 @@
         </div>
     </div>
 
-    <!-- نافذة إضافة المريض السريع (Emergency Booking) -->
+    <!-- Emergency Modal -->
     <div class="fixed inset-0 z-50 modal-enter hidden" id="emergencyModal">
         <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeGenericModal('emergencyModal', 'modalSheet')"></div>
         <div class="absolute bottom-0 w-full bg-surface-container-lowest rounded-t-xl p-section-padding pb-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sheet-enter" id="modalSheet">
@@ -349,35 +344,25 @@
         </div>
     </div>
 
-    <!-- الكود البرمجي الرئيسي -->
+    <!-- Scripts -->
     <script>
-        // 1. تهيئة تليجرام
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // دالة حماية النصوص
         function escapeHtml(value) {
             if (value === null || value === undefined) return '';
-            return String(value)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
+            return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
-        // 2. إعدادات Supabase
         const SUPABASE_URL = 'https://zvxzdihonmlglrufrjjl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eHpkaWhvbm1sZ2xydWZyampsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMjA3MjEsImV4cCI6MjA5ODU5NjcyMX0.cZi4F0K28AiT2aXdr4MUCLbub-zUPUXP1IlPntcxEv8';
+        
         let supabaseClient;
         let currentStatus = 'pending';
         let currentSearchTerm = '';
         let searchDebounceTimer = null;
 
-        // ==========================================
-        // إدارة النوافذ المنبثقة العامة
-        // ==========================================
         function openGenericModal(modalId, sheetId) {
             const modal = document.getElementById(modalId);
             const sheet = document.getElementById(sheetId);
@@ -401,34 +386,27 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // ==========================================
-        // إدارة نافذة التفاصيل الشاملة
-        // ==========================================
         let currentEditingBookingId = null;
         let nursesLoaded = false;
         let allServices = [];
         let bookingCart = [];
 
-        // دالة إغلاق مخصصة لتنظيف الذاكرة والحقول
         function closeDetailsModal() {
             closeGenericModal('detailsModal', 'detailsSheet');
             currentEditingBookingId = null;
-
-            // إفراغ السلة
             bookingCart = [];
             renderCart();
-
-            // إفراغ الحقول
             document.getElementById('detailNurse').value = '';
             document.getElementById('detailScheduledAt').value = '';
             document.getElementById('detailAddress').value = '';
             document.getElementById('detailPatientRating').value = '';
             document.getElementById('detailNurseRating').value = '';
             document.getElementById('detailAdminNotes').value = '';
+            document.getElementById('detailMedicalNotes').value = '';
             document.getElementById('transactionType').value = 'collected_by_nurse';
+            document.getElementById('paymentMethod').value = 'cash';
         }
 
-        // جلب تفاصيل الحجز وفتح النافذة
         async function fetchAndOpenDetails(bookingId, patientName, patientPhone, status) {
             currentEditingBookingId = bookingId;
             document.getElementById('detailPatientName').innerText = patientName;
@@ -436,14 +414,11 @@
             document.getElementById('detailPatientAvatar').innerText = (patientName || '؟').trim().charAt(0);
             document.getElementById('detailStatus').value = status;
 
-            // فتح النافذة فوراً على التبويب الإداري
             switchModalTab('admin');
             openGenericModal('detailsModal', 'detailsSheet');
 
-            // تحميل قائمة الممرضين
             if(!nursesLoaded) await loadAvailableNurses();
 
-            // جلب بيانات الحجز الإضافية من القاعدة (تحديد الأعمدة بشكل مطابق لهيكل القاعدة)
             const { data, error } = await supabaseClient
                 .from('bookings')
                 .select('*')
@@ -454,22 +429,19 @@
 
                 if (data.scheduled_at) {
                     const d = new Date(data.scheduled_at);
-                    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-                    document.getElementById('detailScheduledAt').value = d.toISOString().slice(0,16);
+                    const localIso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0,16);
+                    document.getElementById('detailScheduledAt').value = localIso;
                 }
 
-                // الحقل الصحيح في جدول bookings هو patient_address
                 if (data.patient_address) document.getElementById('detailAddress').value = data.patient_address;
-                
-                // الحقل الصحيح في جدول bookings هو coordinator_notes
+                if (data.medical_notes) document.getElementById('detailMedicalNotes').value = data.medical_notes;
                 if (data.coordinator_notes) document.getElementById('detailAdminNotes').value = data.coordinator_notes;
-                
                 if (data.patient_rating) document.getElementById('detailPatientRating').value = data.patient_rating;
                 if (data.nurse_rating) document.getElementById('detailNurseRating').value = data.nurse_rating;
+                if (data.payment_method) document.getElementById('paymentMethod').value = data.payment_method;
             }
         }
 
-        // التبديل بين التبويبات
         function switchModalTab(tabName) {
             if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
             const tabs = ['Admin', 'Finance', 'Reviews', 'Schedule'];
@@ -491,11 +463,6 @@
             if(tabName === 'finance' && allServices.length === 0) loadServices();
         }
 
-        // ==========================================
-        // دوال الحفظ للأقسام المختلفة
-        // ==========================================
-
-        // 1. حفظ القسم الإداري
         async function saveAdminData() {
             const status = document.getElementById('detailStatus').value;
             const nurseValue = document.getElementById('detailNurse').value;
@@ -504,7 +471,6 @@
             btn.innerHTML = 'جاري الحفظ...'; btn.disabled = true;
 
             const updateData = { status: status, nurse_id: nurseValue ? nurseValue : null };
-
             const { error } = await supabaseClient.from('bookings').update(updateData).eq('id', currentEditingBookingId);
 
             btn.innerHTML = `حفظ البيانات الإدارية <span class="material-symbols-outlined text-[18px]">save</span>`;
@@ -520,17 +486,18 @@
             }
         }
 
-        // 2. حفظ الجدولة والموقع
         async function saveScheduleData() {
             const scheduledAtValue = document.getElementById('detailScheduledAt').value;
             const addressValue = document.getElementById('detailAddress').value.trim();
+            const medicalNotesValue = document.getElementById('detailMedicalNotes').value.trim();
             const btn = document.getElementById('saveScheduleBtn');
 
             btn.innerHTML = 'جاري الحفظ...'; btn.disabled = true;
 
             const updateData = {
                 scheduled_at: scheduledAtValue ? new Date(scheduledAtValue).toISOString() : null,
-                patient_address: addressValue ? addressValue : null
+                patient_address: addressValue ? addressValue : null,
+                medical_notes: medicalNotesValue ? medicalNotesValue : null
             };
 
             const { error } = await supabaseClient.from('bookings').update(updateData).eq('id', currentEditingBookingId);
@@ -540,15 +507,13 @@
 
             if (error) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                console.error("Schedule Save Error:", error);
-                tg.showAlert("خطأ من الخادم: " + error.message);
+                tg.showAlert("حدث خطأ في الحفظ.");
             } else {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert("تم حفظ موعد الزيارة بنجاح!");
+                tg.showAlert("تم الحفظ بنجاح!");
             }
         }
 
-        // 3. حفظ التقييمات والملاحظات
         async function saveReviewsData() {
             const pRatingValue = document.getElementById('detailPatientRating').value;
             const nRatingValue = document.getElementById('detailNurseRating').value;
@@ -577,9 +542,6 @@
             }
         }
 
-        // ==========================================
-        // إدارة السلة (المالية)
-        // ==========================================
         async function loadAvailableNurses() {
             const nurseSelect = document.getElementById('detailNurse');
             const { data, error } = await supabaseClient.from('nurses').select('id, full_name').eq('is_available', true).eq('is_frozen', false);
@@ -592,9 +554,12 @@
         async function loadServices() {
             const { data, error } = await supabaseClient.from('services').select('*').eq('is_active', true);
             if (!error && data) {
-                allServices = data;
+                allServices = data.map(s => ({
+                    ...s,
+                    computed_price: parseFloat(s.base_price !== undefined ? s.base_price : s.price) || 0
+                }));
                 document.getElementById('serviceSelect').innerHTML = '<option value="">-- اختر خدمة --</option>' +
-                    data.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${parseFloat(s.base_price).toFixed(2)} ج.م)</option>`).join('');
+                    allServices.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${s.computed_price.toFixed(2)} ج.م)</option>`).join('');
             }
         }
 
@@ -608,7 +573,7 @@
                 tg.showAlert("الخدمة مضافة مسبقاً للسلة!"); return;
             }
 
-            bookingCart.push({ service_id: service.id, service_name: service.name, qty: 1, price_at_time: service.base_price });
+            bookingCart.push({ service_id: service.id, service_name: service.name, qty: 1, price_at_time: service.computed_price });
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             renderCart();
             select.value = '';
@@ -648,8 +613,12 @@
 
             let totalAmount = bookingCart.reduce((sum, item) => sum + (parseFloat(item.price_at_time) || 0), 0);
             const transactionType = document.getElementById('transactionType').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
 
             try {
+                // حفظ طريقة الدفع بالتزامن مع البيانات المالية
+                await supabaseClient.from('bookings').update({ payment_method: paymentMethod }).eq('id', currentEditingBookingId);
+
                 const { error } = await supabaseClient.rpc('update_booking_financials', {
                     p_booking_id: currentEditingBookingId,
                     p_cart_data: bookingCart,
@@ -672,9 +641,6 @@
             }
         }
 
-        // ==========================================
-        // البحث والتنقل
-        // ==========================================
         function clearSearch() {
             clearTimeout(searchDebounceTimer);
             const input = document.getElementById('patientSearchInput');
@@ -700,9 +666,6 @@
             fetchAndOpenDetails(card.dataset.id, card.dataset.name, card.dataset.phone, card.dataset.status);
         });
 
-        // ==========================================
-        // الإعداد الرئيسي وجلب القوائم
-        // ==========================================
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -808,9 +771,6 @@
             }).join('');
         }
 
-        // ==========================================
-        // طلب الطوارئ (الإضافة السريعة)
-        // ==========================================
         document.getElementById('emergencyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('patientName').value.trim();
@@ -824,6 +784,7 @@
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 closeGenericModal('emergencyModal', 'modalSheet');
                 document.getElementById('emergencyForm').reset();
+                fetchBookings(currentStatus);
             } catch (err) {
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 tg.showAlert("حدث خطأ أثناء التسجيل.");
@@ -832,7 +793,6 @@
             }
         });
 
-        // تشغيل النظام
         initApp();
     </script>
 </body>
